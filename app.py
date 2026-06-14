@@ -1,10 +1,8 @@
 # app.py
-# ---------------------------------------------------------
-# PHASE 3 CHANGES (marked with "# PHASE 3" comments below):
-#   - Import admin_bp from routes/admin_routes.py
-#   - Register admin_bp with the app
-# Everything else is UNCHANGED from Phase 2.
-# ---------------------------------------------------------
+# PHASE 4 CHANGES:
+#   - Import hospital_bp
+#   - Register hospital_bp
+# Everything else unchanged from Phase 3.
 
 from flask import Flask, jsonify
 from flask_cors import CORS
@@ -16,7 +14,8 @@ from database.db import db
 from models import User, Hospital, Doctor, Patient, Prescription, SurgeryHistory
 
 from routes.auth_routes import auth_bp
-from routes.admin_routes import admin_bp  # PHASE 3: import admin routes
+from routes.admin_routes import admin_bp
+from routes.hospital_routes import hospital_bp  # PHASE 4
 
 
 def create_app():
@@ -37,9 +36,9 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # Register blueprints
     app.register_blueprint(auth_bp)
-    app.register_blueprint(admin_bp)  # PHASE 3: register admin routes
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(hospital_bp)  # PHASE 4
 
     with app.app_context():
         db.create_all()
