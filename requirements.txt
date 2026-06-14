@@ -1,0 +1,20 @@
+# Flask is the web framework that powers our backend
+Flask==3.0.0
+
+# Flask-SQLAlchemy lets us use Python classes to represent database tables
+Flask-SQLAlchemy==3.1.1
+
+# Flask-Login helps us manage user sessions (who is logged in)
+Flask-Login==0.6.3
+
+# Werkzeug is used for securely hashing passwords (comes with Flask, but listed for clarity)
+Werkzeug==3.0.1
+
+# Flask-CORS allows our frontend (running on a different port/origin) to talk to this backend
+Flask-Cors==4.0.0
+
+# python-dotenv lets us load secret settings from a .env file instead of hardcoding them
+python-dotenv==1.0.0
+
+# PyMySQL is the driver that lets SQLAlchemy talk to a MySQL database
+PyMySQL==1.1.0
