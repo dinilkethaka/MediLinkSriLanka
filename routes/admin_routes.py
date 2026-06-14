@@ -15,6 +15,7 @@
 #   Patients:
 #     GET  /api/admin/patients           -> list ALL patients (system-wide)
 #     GET  /api/admin/patients/<id>      -> view one patient
+#     POST /api/admin/patients/import-csv -> bulk import patients from CSV (Phase 6)
 #
 #   Dashboard:
 #     GET  /api/admin/dashboard          -> stats for the admin dashboard
@@ -29,6 +30,7 @@ from flask_login import login_required
 
 from database.db import db
 from services.authentication_service import role_required
+from services.csv_import_service import import_patients_from_csv  # PHASE 6
 
 from models.hospital import Hospital
 from models.doctor import Doctor
@@ -319,7 +321,7 @@ def get_doctor(doctor_id):
 
 
 # =====================================================
-# PATIENTS (system-wide, admin can view but not add)
+# PATIENTS (system-wide, admin can view but not add manually)
 # =====================================================
 
 @admin_bp.route("/api/admin/patients", methods=["GET"])
@@ -330,8 +332,9 @@ def list_all_patients():
     Returns ALL patients in the system, from every hospital.
 
     NOTE: Admins can VIEW patients but, per the project requirements,
-    only HOSPITALS can REGISTER new patients (that route lives in
-    Phase 4's hospital_routes.py, not here).
+    only HOSPITALS can REGISTER new patients one-by-one (that route
+    lives in hospital_routes.py from Phase 4). Admins can however
+    BULK IMPORT patients via CSV (see import_patients_csv below).
 
     Supports an optional search query string:
         GET /api/admin/patients?search=Perera
@@ -378,6 +381,78 @@ def get_patient(patient_id):
         return jsonify({"error": "Patient not found"}), 404
 
     return jsonify({"patient": patient.to_dict()}), 200
+
+
+# =====================================================
+# CSV IMPORT (Phase 6)
+# =====================================================
+
+@admin_bp.route("/api/admin/patients/import-csv", methods=["POST"])
+@login_required
+@role_required("admin")
+def import_patients_csv():
+    """
+    Bulk-imports patients from an uploaded CSV file.
+
+    This is a "multipart/form-data" request (a file upload), NOT JSON!
+    The frontend's upload zone sends:
+      - a file (key: "file")
+      - a hospital_id (key: "hospital_id") - which hospital these
+        patients should be linked to
+
+    Example using curl:
+        curl -X POST http://127.0.0.1:5000/api/admin/patients/import-csv \\
+             -F "file=@patients.csv" \\
+             -F "hospital_id=1"
+
+    Returns a summary of the import (see services/csv_import_service.py).
+    """
+
+    # --- STEP 1: Check a file was actually uploaded ---
+    # request.files is a dictionary-like object containing uploaded
+    # files, keyed by the form field name ("file" in our case).
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded. Expected a form field named 'file'."}), 400
+
+    file = request.files["file"]
+
+    # If the user submitted the form without choosing a file,
+    # file.filename will be an empty string.
+    if file.filename == "":
+        return jsonify({"error": "No file selected"}), 400
+
+    # --- STEP 2: Check the file extension ---
+    # We only accept .csv files for now (the frontend also mentions
+    # .xlsx, but reading Excel files requires an extra library -
+    # we can add that in a later phase if needed).
+    if not file.filename.lower().endswith(".csv"):
+        return jsonify({"error": "Only .csv files are supported"}), 400
+
+    # --- STEP 3: Get and validate hospital_id ---
+    # request.form is used for regular form fields sent alongside
+    # the file (as opposed to request.get_json() which is for
+    # pure JSON requests).
+    hospital_id_raw = request.form.get("hospital_id")
+
+    hospital_id = None
+    if hospital_id_raw:
+        try:
+            hospital_id = int(hospital_id_raw)
+        except ValueError:
+            return jsonify({"error": "hospital_id must be a number"}), 400
+
+        # Make sure this hospital actually exists.
+        hospital = Hospital.query.get(hospital_id)
+        if hospital is None:
+            return jsonify({"error": f"No hospital found with id {hospital_id}"}), 404
+
+    # --- STEP 4: Run the import using our service function ---
+    summary = import_patients_from_csv(file, hospital_id)
+
+    return jsonify({
+        "message": "CSV import completed",
+        "summary": summary
+    }), 200
 
 
 # =====================================================

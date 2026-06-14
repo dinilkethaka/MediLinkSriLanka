@@ -1,8 +1,8 @@
 # app.py
-# PHASE 4 CHANGES:
-#   - Import hospital_bp
-#   - Register hospital_bp
-# Everything else unchanged from Phase 3.
+# PHASE 5 CHANGES:
+#   - Import doctor_bp
+#   - Register doctor_bp
+# Everything else unchanged from Phase 4.
 
 from flask import Flask, jsonify
 from flask_cors import CORS
@@ -15,7 +15,8 @@ from models import User, Hospital, Doctor, Patient, Prescription, SurgeryHistory
 
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
-from routes.hospital_routes import hospital_bp  # PHASE 4
+from routes.hospital_routes import hospital_bp
+from routes.doctor_routes import doctor_bp  # PHASE 5
 
 
 def create_app():
@@ -38,7 +39,8 @@ def create_app():
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
-    app.register_blueprint(hospital_bp)  # PHASE 4
+    app.register_blueprint(hospital_bp)
+    app.register_blueprint(doctor_bp)  # PHASE 5
 
     with app.app_context():
         db.create_all()
