@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediLink — All Patients</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sb-logo">
+        <div class="sb-icon">🏥</div>
+        <span class="sb-name">MediLink</span>
+      </div>
+      <div class="sb-role-badge sb-role-admin">🛡 Admin</div>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">…</div>
+      <div>
+        <div class="sb-user-name" id="sb-uname">Loading...</div>
+        <div class="sb-user-sub">Session active</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Overview</div>
+        <a href="dashboard.html" class="nav-item">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Management</div>
+        <a href="hospitals.html" class="nav-item">
+          <span class="nav-icon">🏛</span> Hospitals
+        </a>
+        <a href="doctors.html" class="nav-item">
+          <span class="nav-icon">👨‍⚕️</span> Doctors
+        </a>
+        <a href="patients.html" class="nav-item active">
+          <span class="nav-icon">👥</span> All Patients
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="enc-status">
+        <div class="enc-dot"></div>
+        <span>Session secured</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>All Patients</h2>
+        <p>System-wide patient registry</p>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="search-row">
+        <div class="search-wrap">
+          <span class="s-icon">🔍</span>
+          <input type="text" placeholder="Search by name or NIC..." oninput="loadPatients(this.value)">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient ID</th><th>Name</th><th>NIC</th><th>Age/Sex</th>
+                <th>Blood</th><th>Hospital</th><th>Condition</th>
+              </tr>
+            </thead>
+            <tbody id="pat-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done</span>
+</div>
+
+<script src="../api.js"></script>
+<script>const REQUIRED_ROLE = "admin";</script>
+<script src="../auth-guard.js"></script>
+
+<script>
+  document.addEventListener("auth-ready", () => {
+    loadPatients();
+  });
+
+  /**
+   * Loads patients into the table, with an optional search term.
+   */
+  async function loadPatients(search = '') {
+    const tbody = document.getElementById('pat-tbody');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</td></tr>';
+
+    try {
+      const result = await apiAdminListPatients(search);
+      const patients = result.patients;
+
+      if (patients.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:24px">No patients found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = patients.map(p => {
+        let age = '—';
+        if (p.date_of_birth) {
+          age = Math.floor((new Date() - new Date(p.date_of_birth)) / 31557600000);
+        }
+
+        return `<tr>
+          <td class="mono" style="font-size:11px;color:var(--primary);font-weight:700">ML-${String(p.id).padStart(4, '0')}</td>
+          <td><strong>${p.full_name}</strong></td>
+          <td class="mono" style="font-size:12px">${p.nic}</td>
+          <td>${age}y · ${(p.gender || '?')[0]}</td>
+          <td style="color:var(--danger);font-weight:700">${p.blood_group || '—'}</td>
+          <td style="font-size:12px">${p.hospital_name || '—'}</td>
+          <td style="font-size:12px">${p.existing_conditions || '—'}</td>
+        </tr>`;
+      }).join('');
+
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--danger);padding:24px">Error: ${err.message}</td></tr>`;
+    }
+  }
+</script>
+</body>
+</html>

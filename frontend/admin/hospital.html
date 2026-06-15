@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediLink — Hospitals</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ═══ SIDEBAR (same on every admin page) ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sb-logo">
+        <div class="sb-icon">🏥</div>
+        <span class="sb-name">MediLink</span>
+      </div>
+      <div class="sb-role-badge sb-role-admin">🛡 Admin</div>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">…</div>
+      <div>
+        <div class="sb-user-name" id="sb-uname">Loading...</div>
+        <div class="sb-user-sub">Session active</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Overview</div>
+        <a href="dashboard.html" class="nav-item">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Management</div>
+        <a href="hospitals.html" class="nav-item active">
+          <span class="nav-icon">🏛</span> Hospitals
+        </a>
+        <a href="doctors.html" class="nav-item">
+          <span class="nav-icon">👨‍⚕️</span> Doctors
+        </a>
+        <a href="patients.html" class="nav-item">
+          <span class="nav-icon">👥</span> All Patients
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="enc-status">
+        <div class="enc-dot"></div>
+        <span>Session secured</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN AREA ═══ -->
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Hospital Registry</h2>
+        <p>All registered healthcare institutions</p>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm" onclick="openOverlay('overlay-hospital')">+ Add Hospital</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <div class="alert alert-info">
+        <span>📥</span>
+        <span>To bulk-import patient records via CSV, choose a hospital below and upload your CSV file.</span>
+      </div>
+
+      <div class="search-row">
+        <div class="form-group" style="flex:1;max-width:320px;margin-bottom:0">
+          <label>Import patients into hospital</label>
+          <select id="csv-target-hospital"></select>
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <label class="btn btn-success btn-sm" for="csv-file" style="cursor:pointer">📥 Import Patients CSV</label>
+          <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCsvUpload(this)">
+        </div>
+      </div>
+
+      <div id="csv-import-result" style="display:none;margin-bottom:16px"></div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>Hospital Name</th><th>Type</th><th>Province</th>
+                <th>City</th><th>Beds</th><th>Doctors</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="hosp-tbody">
+              <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADD HOSPITAL MODAL ═══ -->
+<div class="overlay" id="overlay-hospital">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-head">
+      <div class="modal-title">🏛 Register New Hospital</div>
+      <button class="close-x" onclick="closeOverlay('overlay-hospital')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="g2">
+        <div class="form-group"><label>Hospital Name *</label><input type="text" id="nh-name" placeholder="e.g., Ratnapura General Hospital"></div>
+        <div class="form-group">
+          <label>Type *</label>
+          <select id="nh-type">
+            <option value="Government">Government</option>
+            <option value="Private">Private</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Province</label>
+          <select id="nh-prov">
+            <option>Western Province</option><option>Central Province</option><option>Southern Province</option>
+            <option>Northern Province</option><option>Eastern Province</option><option>North Western Province</option>
+            <option>North Central Province</option><option>Uva Province</option><option>Sabaragamuwa Province</option>
+          </select>
+        </div>
+        <div class="form-group"><label>City</label><input type="text" id="nh-city" placeholder="e.g., Ratnapura"></div>
+        <div class="form-group"><label>Bed Capacity</label><input type="number" id="nh-beds" placeholder="e.g., 500"></div>
+        <div class="form-group"><label>Contact Phone</label><input type="tel" id="nh-phone" placeholder="+94 XX XXX XXXX"></div>
+      </div>
+      <div class="form-group"><label>Address</label><input type="text" id="nh-addr" placeholder="Full address"></div>
+      <div class="form-group"><label>Hospital Email</label><input type="email" id="nh-email" placeholder="admin@hospital.lk"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeOverlay('overlay-hospital')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveHospital()">💾 Register Hospital</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shared toast element -->
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done</span>
+</div>
+
+<script src="../api.js"></script>
+<script>const REQUIRED_ROLE = "admin";</script>
+<script src="../auth-guard.js"></script>
+
+<script>
+  document.addEventListener("auth-ready", () => {
+    loadHospitals();
+  });
+
+  /**
+   * Loads all hospitals into the table AND the CSV-target dropdown.
+   */
+  async function loadHospitals() {
+    const tbody = document.getElementById('hosp-tbody');
+    const select = document.getElementById('csv-target-hospital');
+
+    try {
+      const result = await apiAdminListHospitals();
+      const hospitals = result.hospitals;
+
+      if (hospitals.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:24px">No hospitals registered yet</td></tr>';
+      } else {
+        tbody.innerHTML = hospitals.map(h => `<tr>
+          <td class="mono" style="font-size:11px;color:var(--text-dim)">${h.id}</td>
+          <td><strong>${h.hospital_name}</strong></td>
+          <td><span class="badge ${h.hospital_type==='Government'?'badge-govt':'badge-private'}">${h.hospital_type}</span></td>
+          <td style="font-size:12px">${h.province || '—'}</td>
+          <td>${h.city || '—'}</td>
+          <td class="mono">${(h.bed_capacity||0).toLocaleString()}</td>
+          <td class="mono">${h.doctor_count}</td>
+          <td><span class="badge badge-green">Active</span></td>
+        </tr>`).join('');
+      }
+
+      // Populate CSV-target dropdown
+      select.innerHTML = hospitals.map(h =>
+        `<option value="${h.id}">${h.hospital_name}</option>`
+      ).join('');
+
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--danger);padding:24px">Error: ${err.message}</td></tr>`;
+    }
+  }
+
+  /**
+   * Saves the new hospital using the form values, then reloads the table.
+   */
+  async function saveHospital() {
+    const name = document.getElementById('nh-name').value.trim();
+    if (!name) {
+      showToast('Hospital name required', 'error');
+      return;
+    }
+
+    const hospitalData = {
+      hospital_name: name,
+      hospital_type: document.getElementById('nh-type').value, // "Government" or "Private"
+      province: document.getElementById('nh-prov').value,
+      city: document.getElementById('nh-city').value,
+      address: document.getElementById('nh-addr').value || null,
+      bed_capacity: parseInt(document.getElementById('nh-beds').value) || 0,
+      contact_number: document.getElementById('nh-phone').value || null,
+      email: document.getElementById('nh-email').value || null
+    };
+
+    try {
+      const result = await apiAdminAddHospital(hospitalData);
+
+      closeOverlay('overlay-hospital');
+      document.getElementById('nh-name').value = '';
+
+      await loadHospitals();
+
+      showToast(`Hospital registered — ID: ${result.hospital.id}`, 'success');
+
+    } catch (err) {
+      // Shows backend errors like "A hospital with this name already exists"
+      showToast(err.message, 'error');
+    }
+  }
+
+  /**
+   * Handles the CSV file input change -> uploads to backend and
+   * shows a summary of the import.
+   */
+  async function handleCsvUpload(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const hospitalId = document.getElementById('csv-target-hospital').value;
+    const resultBox = document.getElementById('csv-import-result');
+
+    resultBox.style.display = 'block';
+    resultBox.className = 'alert alert-info';
+    resultBox.innerHTML = `<span>⏳</span><span>Importing ${file.name}...</span>`;
+
+    try {
+      const response = await apiAdminImportCsv(file, hospitalId);
+      const s = response.summary;
+
+      resultBox.className = 'alert alert-success';
+      resultBox.innerHTML = `
+        <span>✅</span>
+        <span>
+          Import complete: <strong>${s.imported}</strong> imported,
+          <strong>${s.skipped_duplicate}</strong> duplicate(s) skipped,
+          <strong>${s.skipped_invalid}</strong> invalid row(s) skipped
+          (out of ${s.total_rows} total rows).
+        </span>`;
+
+      showToast(`CSV import: ${s.imported} patients imported`, 'success');
+
+      // Refresh hospital list (doctor counts unaffected, but good practice)
+      await loadHospitals();
+
+      input.value = '';
+
+    } catch (err) {
+      resultBox.className = 'alert alert-danger';
+      resultBox.innerHTML = `<span>❌</span><span>Import failed: ${err.message}</span>`;
+      showToast('CSV import failed', 'error');
+    }
+  }
+</script>
+</body>
+</html>
