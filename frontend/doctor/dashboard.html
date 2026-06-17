@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediLink — Doctor Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sb-logo">
+        <div class="sb-icon">🏥</div>
+        <span class="sb-name">MediLink</span>
+      </div>
+      <div class="sb-role-badge sb-role-doctor">👨‍⚕️ Doctor</div>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">…</div>
+      <div>
+        <div class="sb-user-name" id="sb-uname">Loading...</div>
+        <div class="sb-user-sub" id="sb-current-hosp">Session active</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Clinical</div>
+        <a href="dashboard.html" class="nav-item active">
+          <span class="nav-icon">👥</span> Search Patients
+        </a>
+        <a href="prescriptions.html" class="nav-item">
+          <span class="nav-icon">💊</span> My Prescriptions
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="btn btn-outline btn-sm" style="width:100%;margin-bottom:8px" onclick="changeHospital()">🔄 Change Hospital</button>
+      <div class="enc-status">
+        <div class="enc-dot"></div>
+        <span>Session secured</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Search Patients</h2>
+        <p>Find a patient by name or NIC to view history and prescribe</p>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <div class="alert alert-info">
+        <span>ℹ️</span>
+        <span>You can view full medical history across all hospitals. Click a patient to view details and prescribe.</span>
+      </div>
+
+      <div class="search-row">
+        <div class="search-wrap">
+          <span class="s-icon">🔍</span>
+          <input type="text" placeholder="Search by NIC or name..." oninput="loadPatients(this.value)">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Patient ID</th><th>Name</th><th>NIC</th><th>Age/Sex</th><th>Blood</th><th>Condition</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="pat-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">Search for a patient above</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done</span>
+</div>
+
+<script src="../api.js"></script>
+<script>const REQUIRED_ROLE = "doctor";</script>
+<script src="../auth-guard.js"></script>
+
+<script>
+  document.addEventListener("auth-ready", () => {
+    // If no hospital was selected this session, send them back
+    // to the hospital picker.
+    const hospName = sessionStorage.getItem('doctorCurrentHospitalName');
+    if (!hospName) {
+      window.location.href = 'select-hospital.html';
+      return;
+    }
+
+    document.getElementById('sb-current-hosp').textContent = 'At: ' + hospName;
+
+    // Load all patients by default (empty search = everyone, per backend)
+    loadPatients();
+  });
+
+  /**
+   * Clears the selected hospital and sends the doctor back to
+   * the hospital picker (e.g. if they're now working somewhere else).
+   */
+  function changeHospital() {
+    sessionStorage.removeItem('doctorCurrentHospitalId');
+    sessionStorage.removeItem('doctorCurrentHospitalName');
+    window.location.href = 'select-hospital.html';
+  }
+
+  /**
+   * Searches patients across ALL hospitals (no hospital_id filter -
+   * doctors need broad access for centralized record-keeping).
+   */
+  async function loadPatients(search = '') {
+    const tbody = document.getElementById('pat-tbody');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</td></tr>';
+
+    try {
+      const result = await apiDoctorSearchPatients(search);
+      const patients = result.patients;
+
+      if (patients.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:24px">No patients found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = patients.map(p => {
+        let age = '—';
+        if (p.date_of_birth) {
+          age = Math.floor((new Date() - new Date(p.date_of_birth)) / 31557600000);
+        }
+
+        return `<tr>
+          <td class="mono" style="font-size:11px;color:var(--primary);font-weight:700">ML-${String(p.id).padStart(4, '0')}</td>
+          <td><strong>${p.full_name}</strong></td>
+          <td class="mono" style="font-size:12px">${p.nic}</td>
+          <td>${age}y · ${(p.gender || '?')[0]}</td>
+          <td style="color:var(--danger);font-weight:700">${p.blood_group || '—'}</td>
+          <td style="font-size:12px">${p.existing_conditions || '—'}</td>
+          <td>
+            <a href="patient-detail.html?id=${p.id}" class="btn btn-outline btn-xs">👁 View</a>
+            <a href="patient-detail.html?id=${p.id}&prescribe=1" class="btn btn-success btn-xs" style="margin-left:6px">💊 Prescribe</a>
+          </td>
+        </tr>`;
+      }).join('');
+
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--danger);padding:24px">Error: ${err.message}</td></tr>`;
+    }
+  }
+</script>
+</body>
+</html>

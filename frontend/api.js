@@ -116,3 +116,57 @@ function openOverlay(id) {
 function closeOverlay(id) {
   document.getElementById(id).classList.remove('open');
 }
+
+// ---------------------------------------------------------
+// HOSPITAL ENDPOINTS (Phase 7b)
+// ---------------------------------------------------------
+
+function apiHospitalDashboard() {
+  return apiRequest("/api/hospital/dashboard", "GET");
+}
+
+function apiHospitalListPatients(search = "") {
+  const query = search ? `?search=${encodeURIComponent(search)}` : "";
+  return apiRequest(`/api/hospital/patients${query}`, "GET");
+}
+
+function apiHospitalRegisterPatient(patientData) {
+  return apiRequest("/api/hospital/patients", "POST", patientData);
+}
+
+function apiHospitalGetPatient(patientId) {
+  return apiRequest(`/api/hospital/patients/${patientId}`, "GET");
+}
+
+function apiHospitalSearchDoctors(search = "", specialization = "") {
+  const params = new URLSearchParams();
+  if (search) params.set("search", search);
+  if (specialization) params.set("specialization", specialization);
+  const query = params.toString() ? `?${params.toString()}` : "";
+  return apiRequest(`/api/hospital/doctors${query}`, "GET");
+}
+
+// ---------------------------------------------------------
+// DOCTOR ENDPOINTS (Phase 7c)
+// ---------------------------------------------------------
+
+function apiDoctorListHospitals() {
+  return apiRequest("/api/doctor/hospitals", "GET");
+}
+
+function apiDoctorSearchPatients(search = "") {
+  const query = search ? `?search=${encodeURIComponent(search)}` : "";
+  return apiRequest(`/api/doctor/patients${query}`, "GET");
+}
+
+function apiDoctorGetPatient(patientId) {
+  return apiRequest(`/api/doctor/patients/${patientId}`, "GET");
+}
+
+function apiDoctorAddPrescription(prescriptionData) {
+  return apiRequest("/api/doctor/prescriptions", "POST", prescriptionData);
+}
+
+function apiDoctorListMyPrescriptions() {
+  return apiRequest("/api/doctor/prescriptions", "GET");
+}

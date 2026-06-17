@@ -137,10 +137,10 @@
       // Redirect to the correct dashboard based on the account's
       // ACTUAL role (from the backend), regardless of which role
       // card was clicked.
-      const redirects = {
+     const redirects = {
         admin: 'admin/dashboard.html',
         hospital: 'hospital/dashboard.html',
-        doctor: 'doctor/dashboard.html'
+        doctor: 'doctor/select-hospital.html'
       };
 
       window.location.href = redirects[role];
