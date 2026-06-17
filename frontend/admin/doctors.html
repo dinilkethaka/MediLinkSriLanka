@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediLink — Doctors</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sb-logo">
+        <div class="sb-icon">🏥</div>
+        <span class="sb-name">MediLink</span>
+      </div>
+      <div class="sb-role-badge sb-role-admin">🛡 Admin</div>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">…</div>
+      <div>
+        <div class="sb-user-name" id="sb-uname">Loading...</div>
+        <div class="sb-user-sub">Session active</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Overview</div>
+        <a href="dashboard.html" class="nav-item">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Management</div>
+        <a href="hospitals.html" class="nav-item">
+          <span class="nav-icon">🏛</span> Hospitals
+        </a>
+        <a href="doctors.html" class="nav-item active">
+          <span class="nav-icon">👨‍⚕️</span> Doctors
+        </a>
+        <a href="patients.html" class="nav-item">
+          <span class="nav-icon">👥</span> All Patients
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="enc-status">
+        <div class="enc-dot"></div>
+        <span>Session secured</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Doctor Registry</h2>
+        <p>SLMC-registered medical practitioners</p>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm" onclick="openAddDoctorModal()">+ Add Doctor</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>SLMC No.</th><th>Name</th><th>Specialty</th><th>Hospital</th><th>NIC</th><th>Status</th></tr>
+            </thead>
+            <tbody id="doc-tbody">
+              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADD DOCTOR MODAL ═══ -->
+<div class="overlay" id="overlay-doctor">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">👨‍⚕️ Register New Doctor</div>
+      <button class="close-x" onclick="closeOverlay('overlay-doctor')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="g2">
+        <div class="form-group"><label>Full Name *</label><input type="text" id="nd-name" placeholder="Dr. Full Name"></div>
+        <div class="form-group"><label>NIC Number</label><input type="text" id="nd-nic" placeholder="e.g., 902501234V"></div>
+        <div class="form-group"><label>SLMC Reg. No. *</label><input type="text" id="nd-reg" placeholder="e.g., SLMC-12345"></div>
+        <div class="form-group">
+          <label>Specialty</label>
+          <select id="nd-spec">
+            <option>Cardiology</option><option>Internal Medicine</option><option>Surgery</option>
+            <option>Pediatrics</option><option>Obstetrics & Gynecology</option><option>Orthopedics</option>
+            <option>Neurology</option><option>Psychiatry</option><option>Radiology</option>
+            <option>General Practice</option><option>Dermatology</option><option>Oncology</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Assign Hospital</label><select id="nd-hosp"></select></div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="nd-phone" placeholder="+94 77 XXX XXXX"></div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="card-title" style="font-size:14px;margin-bottom:12px">🔑 Login Account</div>
+      <div class="g2">
+        <div class="form-group"><label>Email *</label><input type="email" id="nd-email" placeholder="doctor@medilink.lk"></div>
+        <div class="form-group"><label>Username *</label><input type="text" id="nd-username" placeholder="e.g., doctor_nimal"></div>
+        <div class="form-group"><label>Password *</label><input type="password" id="nd-password" placeholder="Minimum 8 characters"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeOverlay('overlay-doctor')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDoctor()">💾 Register Doctor</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done</span>
+</div>
+
+<script src="../api.js"></script>
+<script>const REQUIRED_ROLE = "admin";</script>
+<script src="../auth-guard.js"></script>
+
+<script>
+  document.addEventListener("auth-ready", () => {
+    loadDoctors();
+  });
+
+  /**
+   * Loads all doctors into the table.
+   */
+  async function loadDoctors() {
+    const tbody = document.getElementById('doc-tbody');
+
+    try {
+      const result = await apiAdminListDoctors();
+      const doctors = result.doctors;
+
+      if (doctors.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:24px">No doctors registered yet</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = doctors.map(d => `<tr>
+        <td class="mono" style="font-size:12px">${d.license_number}</td>
+        <td><strong>${d.doctor_name}</strong></td>
+        <td>${d.specialization || '—'}</td>
+        <td style="font-size:12px">${d.hospital_name || '—'}</td>
+        <td class="mono" style="font-size:12px">${d.nic || '—'}</td>
+        <td><span class="badge badge-green">Active</span></td>
+      </tr>`).join('');
+
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:24px">Error: ${err.message}</td></tr>`;
+    }
+  }
+
+  /**
+   * Opens the "Add Doctor" modal AFTER populating the hospital dropdown
+   * with real hospitals.
+   */
+  async function openAddDoctorModal() {
+    const sel = document.getElementById('nd-hosp');
+
+    try {
+      const result = await apiAdminListHospitals();
+      sel.innerHTML = '<option value="">-- No hospital assigned --</option>' +
+        result.hospitals.map(h => `<option value="${h.id}">${h.hospital_name}</option>`).join('');
+    } catch (err) {
+      sel.innerHTML = '<option value="">Failed to load hospitals</option>';
+    }
+
+    openOverlay('overlay-doctor');
+  }
+
+  /**
+   * Saves the new doctor (profile + login account), then reloads the table.
+   */
+  async function saveDoctor() {
+    const doctorData = {
+      doctor_name: document.getElementById('nd-name').value.trim(),
+      nic: document.getElementById('nd-nic').value.trim(),
+      license_number: document.getElementById('nd-reg').value.trim(),
+      specialization: document.getElementById('nd-spec').value,
+      hospital_id: document.getElementById('nd-hosp').value || null,
+      phone_number: document.getElementById('nd-phone').value.trim(),
+      email: document.getElementById('nd-email').value.trim(),
+      username: document.getElementById('nd-username').value.trim(),
+      password: document.getElementById('nd-password').value
+    };
+
+    if (!doctorData.doctor_name || !doctorData.license_number || !doctorData.email
+        || !doctorData.username || !doctorData.password) {
+      showToast('Please fill in all required fields (marked *) including login info', 'error');
+      return;
+    }
+
+    try {
+      const result = await apiAdminAddDoctor(doctorData);
+
+      closeOverlay('overlay-doctor');
+
+      // Clear form
+      ['nd-name','nd-nic','nd-reg','nd-phone','nd-email','nd-username','nd-password']
+        .forEach(id => document.getElementById(id).value = '');
+
+      await loadDoctors();
+
+      showToast(`Doctor registered: ${result.doctor.doctor_name}`, 'success');
+
+    } catch (err) {
+      // Shows backend errors like "A doctor with this license number already exists"
+      // or "This username is already taken"
+      showToast(err.message, 'error');
+    }
+  }
+</script>
+</body>
+</html>

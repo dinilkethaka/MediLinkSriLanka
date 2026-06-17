@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediLink — Select Hospital</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div id="screen-role" style="display:flex">
+  <div class="role-header">
+    <div class="brand-logo">
+      <div class="brand-icon">👨‍⚕️</div>
+      <span class="brand-name">MediLink</span>
+    </div>
+    <div class="brand-tagline">Select your current working hospital</div>
+  </div>
+
+  <div class="login-card" style="max-width:460px">
+    <div class="login-title">Select Hospital</div>
+    <div class="login-sub">Please select the hospital you are currently working at for this session.</div>
+
+    <div class="form-group">
+      <label>Hospital</label>
+      <select id="hosp-select">
+        <option value="">-- Loading hospitals... --</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="confirmHospital()">Confirm & Enter System →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done</span>
+</div>
+
+<script src="../api.js"></script>
+<script>const REQUIRED_ROLE = "doctor";</script>
+<script src="../auth-guard.js"></script>
+
+<script>
+  document.addEventListener("auth-ready", () => {
+    loadHospitalOptions();
+  });
+
+  /**
+   * Loads all hospitals into the dropdown.
+   */
+  async function loadHospitalOptions() {
+    const sel = document.getElementById('hosp-select');
+
+    try {
+      const result = await apiDoctorListHospitals();
+      sel.innerHTML = '<option value="">-- Select Hospital --</option>' +
+        result.hospitals.map(h =>
+          `<option value="${h.id}" data-name="${h.hospital_name}">${h.hospital_name} (${h.hospital_type})</option>`
+        ).join('');
+    } catch (err) {
+      sel.innerHTML = '<option value="">Failed to load hospitals</option>';
+      showToast(err.message, 'error');
+    }
+  }
+
+  /**
+   * Saves the chosen hospital to sessionStorage (cleared when the
+   * browser tab closes) and proceeds to the doctor dashboard.
+   *
+   * WHY sessionStorage and not the backend? This is purely a frontend
+   * "context" concept - which hospital the doctor says they're AT right
+   * now for THIS browsing session. It doesn't need to be a permanent
+   * database fact, and our prescription endpoint already accepts a
+   * hospital_id directly in the request, so we just need to remember
+   * this choice for display purposes and to pre-fill that field.
+   */
+  function confirmHospital() {
+    const sel = document.getElementById('hosp-select');
+    const option = sel.options[sel.selectedIndex];
+
+    if (!sel.value) {
+      showToast('Please select a hospital', 'error');
+      return;
+    }
+
+    sessionStorage.setItem('doctorCurrentHospitalId', sel.value);
+    sessionStorage.setItem('doctorCurrentHospitalName', option.dataset.name);
+
+    window.location.href = 'dashboard.html';
+  }
+</script>
+</body>
+</html>

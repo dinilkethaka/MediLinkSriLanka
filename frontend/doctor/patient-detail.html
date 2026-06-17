@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediLink — Patient Details</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sb-logo">
+        <div class="sb-icon">🏥</div>
+        <span class="sb-name">MediLink</span>
+      </div>
+      <div class="sb-role-badge sb-role-doctor">👨‍⚕️ Doctor</div>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">…</div>
+      <div>
+        <div class="sb-user-name" id="sb-uname">Loading...</div>
+        <div class="sb-user-sub" id="sb-current-hosp">Session active</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Clinical</div>
+        <a href="dashboard.html" class="nav-item active">
+          <span class="nav-icon">👥</span> Search Patients
+        </a>
+        <a href="prescriptions.html" class="nav-item">
+          <span class="nav-icon">💊</span> My Prescriptions
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="btn btn-outline btn-sm" style="width:100%;margin-bottom:8px" onclick="changeHospital()">🔄 Change Hospital</button>
+      <div class="enc-status">
+        <div class="enc-dot"></div>
+        <span>Session secured</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Patient Record</h2>
+        <p><a href="dashboard.html" style="color:var(--primary);text-decoration:none">← Back to Search</a></p>
+      </div>
+    </div>
+
+    <div class="page-content" id="page-content">
+      <div style="text-align:center;padding:48px;color:var(--text-dim)">Loading patient...</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done</span>
+</div>
+
+<script src="../api.js"></script>
+<script>const REQUIRED_ROLE = "doctor";</script>
+<script src="../auth-guard.js"></script>
+
+<script>
+  // Read ?id= and &prescribe= from the URL.
+  const urlParams = new URLSearchParams(window.location.search);
+  const patientId = urlParams.get('id');
+  const autoPrescribe = urlParams.get('prescribe') === '1';
+
+  let currentPatient = null; // cache the loaded patient for the prescribe form
+
+  document.addEventListener("auth-ready", () => {
+    const hospName = sessionStorage.getItem('doctorCurrentHospitalName');
+    if (!hospName) {
+      window.location.href = 'select-hospital.html';
+      return;
+    }
+    document.getElementById('sb-current-hosp').textContent = 'At: ' + hospName;
+
+    if (!patientId) {
+      document.getElementById('page-content').innerHTML =
+        '<div class="alert alert-danger">No patient specified.</div>';
+      return;
+    }
+
+    loadPatient();
+  });
+
+  function changeHospital() {
+    sessionStorage.removeItem('doctorCurrentHospitalId');
+    sessionStorage.removeItem('doctorCurrentHospitalName');
+    window.location.href = 'select-hospital.html';
+  }
+
+  /**
+   * Loads the patient's full details (info + prescriptions + surgeries)
+   * and renders the whole page.
+   */
+  async function loadPatient() {
+    const container = document.getElementById('page-content');
+
+    try {
+      const result = await apiDoctorGetPatient(patientId);
+      currentPatient = result.patient;
+      renderPage();
+
+      if (autoPrescribe) {
+        showTab('tab-prescribe');
+      }
+
+    } catch (err) {
+      container.innerHTML = `<div class="alert alert-danger">Error loading patient: ${err.message}</div>`;
+    }
+  }
+
+  /**
+   * Renders the full page: hero header, tabs, and tab content.
+   * We rebuild this whenever data changes (e.g. after adding a prescription).
+   */
+  function renderPage() {
+    const p = currentPatient;
+    let age = '—';
+    if (p.date_of_birth) {
+      age = Math.floor((new Date() - new Date(p.date_of_birth)) / 31557600000);
+    }
+
+    const container = document.getElementById('page-content');
+
+    container.innerHTML = `
+      <div class="card" style="background:linear-gradient(135deg, var(--blue-800), var(--blue-600)); color:#fff; margin-bottom:20px">
+        <div style="font-size:22px;font-weight:800">${p.full_name}</div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:8px;opacity:0.9;font-size:13px">
+          <span>📋 NIC: ${p.nic}</span>
+          <span>🎂 Age: ${age}</span>
+          <span>🧍 ${p.gender || '—'}</span>
+          <span>🩸 ${p.blood_group || '—'}</span>
+          <span>📞 ${p.phone_number || '—'}</span>
+        </div>
+        ${p.allergies && p.allergies !== 'None' ? `<div style="margin-top:10px"><span class="badge badge-red">⚠️ ALLERGY: ${p.allergies}</span></div>` : ''}
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:20px">
+        <button class="btn btn-outline btn-sm tab-btn" id="btn-tab-history" onclick="showTab('tab-history')">📅 History</button>
+        <button class="btn btn-outline btn-sm tab-btn" id="btn-tab-meds" onclick="showTab('tab-meds')">💊 Medications</button>
+        <button class="btn btn-outline btn-sm tab-btn" id="btn-tab-prescribe" onclick="showTab('tab-prescribe')">➕ Prescribe</button>
+        <button class="btn btn-outline btn-sm tab-btn" id="btn-tab-info" onclick="showTab('tab-info')">🧍 Info</button>
+      </div>
+
+      <div id="tab-history" class="tab-content">
+        ${p.surgeries.length === 0
+          ? '<div class="card" style="text-align:center;color:var(--text-dim)">No surgery/history records.</div>'
+          : p.surgeries.map(s => `
+              <div class="card">
+                <div style="font-weight:800">${s.surgery_name}</div>
+                <div style="font-size:12px;color:var(--text-dim);margin-top:4px">${s.surgery_date || 'Date unknown'}</div>
+                <div style="font-size:13px;margin-top:6px">${s.remarks || ''}</div>
+              </div>`).join('')
+        }
+      </div>
+
+      <div id="tab-meds" class="tab-content" style="display:none">
+        ${p.prescriptions.length === 0
+          ? '<div class="card" style="text-align:center;color:var(--text-dim)">No prescriptions on record.</div>'
+          : p.prescriptions.map(rx => `
+              <div class="card" style="display:flex;align-items:center;gap:12px">
+                <div style="font-size:24px">💊</div>
+                <div style="flex:1">
+                  <div style="font-weight:700">${rx.medicine_name}</div>
+                  <div style="font-size:12px;color:var(--text-muted)">${rx.dosage || ''} · ${rx.frequency || ''} · ${rx.duration || ''}</div>
+                  <div style="font-size:11px;color:var(--text-dim)">Prescribed by ${rx.doctor_name || 'Unknown'}</div>
+                </div>
+                <span class="badge ${rx.status==='Active'?'badge-green':'badge-blue'}">${rx.status}</span>
+              </div>`).join('')
+        }
+      </div>
+
+      <div id="tab-prescribe" class="tab-content" style="display:none">
+        <div class="card">
+          <div class="g2">
+            <div class="form-group"><label>Medication Name *</label><input type="text" id="rx-med" placeholder="e.g., Amlodipine"></div>
+            <div class="form-group"><label>Dosage</label><input type="text" id="rx-dose" placeholder="e.g., 5mg"></div>
+            <div class="form-group">
+              <label>Frequency</label>
+              <select id="rx-freq">
+                <option>Once daily</option><option>Twice daily</option><option>Three times daily</option>
+                <option>Every 8 hours</option><option>As needed (PRN)</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Duration</label><input type="text" id="rx-dur" placeholder="e.g., 30 days"></div>
+            <div class="form-group">
+              <label>Route</label>
+              <select id="rx-route"><option>Oral</option><option>IV</option><option>IM</option><option>Topical</option><option>Inhalation</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label>Clinical Notes</label><textarea id="rx-notes" placeholder="Special instructions, warnings, observations..."></textarea></div>
+          <button class="btn btn-primary" onclick="savePrescription()">💾 Save Prescription</button>
+        </div>
+      </div>
+
+      <div id="tab-info" class="tab-content" style="display:none">
+        <div class="card">
+          <div class="g2">
+            <div><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700">Full Name</div><div>${p.full_name}</div></div>
+            <div><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700">NIC</div><div class="mono">${p.nic}</div></div>
+            <div><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700">Address</div><div>${p.address || '—'}</div></div>
+            <div><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700">Registered Hospital</div><div>${p.hospital_name || '—'}</div></div>
+            <div><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700">Allergies</div><div style="color:var(--danger)">${p.allergies || 'None'}</div></div>
+            <div><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700">Conditions</div><div>${p.existing_conditions || 'None'}</div></div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    showTab('tab-history'); // default tab
+  }
+
+  /**
+   * Switches between tabs (History / Medications / Prescribe / Info).
+   */
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('btn-primary'));
+
+    document.getElementById(tabId).style.display = 'block';
+
+    const btnId = 'btn-' + tabId;
+    const btn = document.getElementById(btnId);
+    if (btn) btn.classList.add('btn-primary');
+  }
+
+  /**
+   * Submits the new prescription form to the backend.
+   * On success, reloads the patient's data so the new prescription
+   * shows up immediately in the Medications tab.
+   */
+  async function savePrescription() {
+    const medicineName = document.getElementById('rx-med').value.trim();
+
+    if (!medicineName) {
+      showToast('Medication name is required', 'error');
+      return;
+    }
+
+    const hospitalId = sessionStorage.getItem('doctorCurrentHospitalId');
+
+    const prescriptionData = {
+      patient_id: parseInt(patientId),
+      medicine_name: medicineName,
+      dosage: document.getElementById('rx-dose').value,
+      frequency: document.getElementById('rx-freq').value,
+      duration: document.getElementById('rx-dur').value,
+      route: document.getElementById('rx-route').value,
+      notes: document.getElementById('rx-notes').value,
+      hospital_id: hospitalId ? parseInt(hospitalId) : null
+    };
+
+    try {
+      await apiDoctorAddPrescription(prescriptionData);
+
+      showToast('Prescription saved successfully', 'success');
+
+      // Reload the patient's full data so the Medications tab updates
+      await loadPatient();
+      showTab('tab-meds'); // jump to Medications tab to show the result
+
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+</script>
+</body>
+</html>

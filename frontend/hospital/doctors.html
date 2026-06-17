@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediLink — Find Doctors</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sb-logo">
+        <div class="sb-icon">🏥</div>
+        <span class="sb-name">MediLink</span>
+      </div>
+      <div class="sb-role-badge sb-role-hospital">🏛 Hospital</div>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">…</div>
+      <div>
+        <div class="sb-user-name" id="sb-uname">Loading...</div>
+        <div class="sb-user-sub">Session active</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Clinical</div>
+        <a href="dashboard.html" class="nav-item">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a href="patients.html" class="nav-item">
+          <span class="nav-icon">👥</span> Patients
+        </a>
+        <a href="doctors.html" class="nav-item active">
+          <span class="nav-icon">🔍</span> Find Doctors
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="enc-status">
+        <div class="enc-dot"></div>
+        <span>Session secured</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Find Doctors</h2>
+        <p>Search SLMC-registered doctors across all hospitals</p>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <div class="search-row">
+        <div class="search-wrap">
+          <span class="s-icon">🔍</span>
+          <input type="text" id="doc-search-input" placeholder="Search by name or SLMC no..." oninput="runSearch()">
+        </div>
+        <select id="doc-spec-select" onchange="runSearch()" style="width:200px">
+          <option value="">All Specialties</option>
+          <option>Cardiology</option><option>Internal Medicine</option><option>Surgery</option>
+          <option>Pediatrics</option><option>Neurology</option><option>General Practice</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>SLMC No.</th><th>Name</th><th>Specialty</th><th>Hospital</th><th>Phone</th><th>Status</th></tr>
+            </thead>
+            <tbody id="doc-tbody">
+              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done</span>
+</div>
+
+<script src="../api.js"></script>
+<script>const REQUIRED_ROLE = "hospital";</script>
+<script src="../auth-guard.js"></script>
+
+<script>
+  document.addEventListener("auth-ready", () => {
+    runSearch();
+  });
+
+  /**
+   * Reads the search box and specialty dropdown, then loads matching
+   * doctors from across ALL hospitals (no hospital_id filter on this endpoint).
+   */
+  function runSearch() {
+    const search = document.getElementById('doc-search-input').value;
+    const specialization = document.getElementById('doc-spec-select').value;
+    loadDoctors(search, specialization);
+  }
+
+  async function loadDoctors(search = '', specialization = '') {
+    const tbody = document.getElementById('doc-tbody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</td></tr>';
+
+    try {
+      const result = await apiHospitalSearchDoctors(search, specialization);
+      const doctors = result.doctors;
+
+      if (doctors.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:24px">No doctors found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = doctors.map(d => `<tr>
+        <td class="mono" style="font-size:12px">${d.license_number}</td>
+        <td><strong>${d.doctor_name}</strong></td>
+        <td>${d.specialization || '—'}</td>
+        <td style="font-size:12px">${d.hospital_name || '—'}</td>
+        <td class="mono" style="font-size:12px">${d.phone_number || '—'}</td>
+        <td><span class="badge badge-green">Active</span></td>
+      </tr>`).join('');
+
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:24px">Error: ${err.message}</td></tr>`;
+    }
+  }
+</script>
+</body>
+</html>

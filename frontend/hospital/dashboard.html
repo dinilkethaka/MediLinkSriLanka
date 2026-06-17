@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediLink — Hospital Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ═══ SIDEBAR (same pattern as admin, different links/role) ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sb-logo">
+        <div class="sb-icon">🏥</div>
+        <span class="sb-name">MediLink</span>
+      </div>
+      <div class="sb-role-badge sb-role-hospital">🏛 Hospital</div>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">…</div>
+      <div>
+        <div class="sb-user-name" id="sb-uname">Loading...</div>
+        <div class="sb-user-sub">Session active</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Clinical</div>
+        <a href="dashboard.html" class="nav-item active">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a href="patients.html" class="nav-item">
+          <span class="nav-icon">👥</span> Patients
+        </a>
+        <a href="doctors.html" class="nav-item">
+          <span class="nav-icon">🔍</span> Find Doctors
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="enc-status">
+        <div class="enc-dot"></div>
+        <span>Session secured</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN AREA ═══ -->
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Dashboard</h2>
+        <p id="topbar-sub">Welcome</p>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <div class="stats-grid">
+        <div class="stat-box s-blue">
+          <div class="stat-label">My Patients</div>
+          <div class="stat-num" id="stat-my-patients">…</div>
+          <div class="stat-sub">Registered at this hospital</div>
+          <div class="stat-emoji">👥</div>
+        </div>
+        <div class="stat-box s-sky">
+          <div class="stat-label">Active Prescriptions</div>
+          <div class="stat-num" id="stat-active-rx">…</div>
+          <div class="stat-sub">Across all patients</div>
+          <div class="stat-emoji">💊</div>
+        </div>
+        <div class="stat-box s-green">
+          <div class="stat-label">Doctors on Record</div>
+          <div class="stat-num" id="stat-doctors">…</div>
+          <div class="stat-sub">SLMC registered</div>
+          <div class="stat-emoji">👨‍⚕️</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">🔍 Quick Patient Search</div>
+        </div>
+        <div class="search-wrap" style="margin-bottom:14px">
+          <span class="s-icon">🔍</span>
+          <input type="text" placeholder="Search by name or NIC..." oninput="quickSearch(this.value)">
+        </div>
+        <div id="search-results">
+          <div style="text-align:center;padding:24px;color:var(--text-dim);font-size:13px">Type to search patients</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done</span>
+</div>
+
+<script src="../api.js"></script>
+<script>const REQUIRED_ROLE = "hospital";</script>
+<script src="../auth-guard.js"></script>
+
+<script>
+  document.addEventListener("auth-ready", () => {
+    document.getElementById('topbar-sub').textContent = window.currentUser.full_name;
+    loadDashboardStats();
+  });
+
+  /**
+   * Loads the 3 dashboard stat numbers, scoped to THIS hospital
+   * (the backend uses current_user.hospital_id automatically).
+   */
+  async function loadDashboardStats() {
+    try {
+      const stats = await apiHospitalDashboard();
+
+      document.getElementById('stat-my-patients').textContent = stats.my_patients;
+      document.getElementById('stat-active-rx').textContent = stats.active_prescriptions;
+      document.getElementById('stat-doctors').textContent = stats.doctors_on_record;
+
+    } catch (err) {
+      showToast('Failed to load dashboard: ' + err.message, 'error');
+    }
+  }
+
+  /**
+   * Quick search box - searches THIS hospital's patients only.
+   */
+  async function quickSearch(val) {
+    const el = document.getElementById('search-results');
+
+    if (!val || val.length < 2) {
+      el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-dim);font-size:13px">Type to search patients</div>';
+      return;
+    }
+
+    try {
+      const result = await apiHospitalListPatients(val);
+      const found = result.patients;
+
+      if (!found.length) {
+        el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-dim);font-size:13px">No patients found</div>';
+        return;
+      }
+
+      el.innerHTML = found.map(p => `
+        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--surface2);border-radius:var(--radius-xs);margin-bottom:8px;border:1px solid var(--border)">
+          <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0">${p.full_name.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:700">${p.full_name}</div><div style="font-size:11px;color:var(--text-dim)">${p.nic} · ML-${String(p.id).padStart(4,'0')}</div></div>
+        </div>`).join('');
+
+    } catch (err) {
+      el.innerHTML = `<div style="text-align:center;padding:16px;color:var(--danger);font-size:13px">Error: ${err.message}</div>`;
+    }
+  }
+</script>
+</body>
+</html>
