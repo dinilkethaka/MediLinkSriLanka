@@ -21,7 +21,7 @@ class Patient(db.Model):
     prescriptions = db.relationship("Prescription", back_populates="patient", cascade="all, delete-orphan")
     surgeries = db.relationship("SurgeryHistory", back_populates="patient", cascade="all, delete-orphan")
 
-    @property
+    @property  #python decoder that use attributes
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
 
@@ -32,7 +32,7 @@ class Patient(db.Model):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "full_name": self.full_name,
-            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None,
+            "date_of_birth": self.date_of_birth.isoformat() if self.date_of_birth else None, #date formating
             "gender": self.gender,
             "address": self.address,
             "phone_number": self.phone_number,

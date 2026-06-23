@@ -9,7 +9,6 @@ class Prescription(db.Model):
     patient_id = db.Column(db.Integer, db.ForeignKey("patient.id"), nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey("doctor.id"), nullable=False)
     hospital_id = db.Column(db.Integer, db.ForeignKey("hospital.id"), nullable=True)
-
     medicine_name = db.Column(db.String(100), nullable=False)
     dosage = db.Column(db.String(50), nullable=True)
     frequency = db.Column(db.String(50), nullable=True)
