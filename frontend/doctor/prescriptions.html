@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediLink — My Prescriptions</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sb-logo">
+        <div class="sb-icon">🏥</div>
+        <span class="sb-name">MediLink</span>
+      </div>
+      <div class="sb-role-badge sb-role-doctor">👨‍⚕️ Doctor</div>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">…</div>
+      <div>
+        <div class="sb-user-name" id="sb-uname">Loading...</div>
+        <div class="sb-user-sub" id="sb-current-hosp">Session active</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Clinical</div>
+        <a href="dashboard.html" class="nav-item">
+          <span class="nav-icon">👥</span> Search Patients
+        </a>
+        <a href="prescriptions.html" class="nav-item active">
+          <span class="nav-icon">💊</span> My Prescriptions
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <button class="btn btn-outline btn-sm" style="width:100%;margin-bottom:8px" onclick="changeHospital()">🔄 Change Hospital</button>
+      <div class="enc-status">
+        <div class="enc-dot"></div>
+        <span>Session secured</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Prescriptions I've Issued</h2>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Patient</th><th>Medication</th><th>Dosage / Freq</th><th>Duration</th><th>Date</th><th>Status</th></tr>
+            </thead>
+            <tbody id="rx-tbody">
+              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done</span>
+</div>
+
+<script src="../api.js"></script>
+<script>const REQUIRED_ROLE = "doctor";</script>
+<script src="../auth-guard.js"></script>
+
+<script>
+  document.addEventListener("auth-ready", () => {
+    const hospName = sessionStorage.getItem('doctorCurrentHospitalName');
+    if (!hospName) {
+      window.location.href = 'select-hospital.html';
+      return;
+    }
+    document.getElementById('sb-current-hosp').textContent = 'At: ' + hospName;
+
+    loadMyPrescriptions();
+  });
+
+  function changeHospital() {
+    sessionStorage.removeItem('doctorCurrentHospitalId');
+    sessionStorage.removeItem('doctorCurrentHospitalName');
+    window.location.href = 'select-hospital.html';
+  }
+
+  /**
+   * Loads all prescriptions written by the logged-in doctor
+   * (backend filters by current_user.doctor_id automatically).
+   */
+  async function loadMyPrescriptions() {
+    const tbody = document.getElementById('rx-tbody');
+
+    try {
+      const result = await apiDoctorListMyPrescriptions();
+      const prescriptions = result.prescriptions;
+
+      if (prescriptions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:24px">No prescriptions issued yet</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = prescriptions.map(rx => `<tr>
+        <td><strong>${rx.patient_name || '—'}</strong></td>
+        <td>💊 ${rx.medicine_name}</td>
+        <td>${rx.dosage || ''} · ${rx.frequency || ''}</td>
+        <td>${rx.duration || '—'}</td>
+        <td style="font-size:12px">${rx.created_at ? rx.created_at.split('T')[0] : '—'}</td>
+        <td><span class="badge ${rx.status==='Active'?'badge-green':'badge-blue'}">${rx.status}</span></td>
+      </tr>`).join('');
+
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:24px">Error: ${err.message}</td></tr>`;
+    }
+  }
+</script>
+</body>
+</html>

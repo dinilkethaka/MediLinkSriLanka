@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediLink — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sb-logo">
+        <div class="sb-icon">🏥</div>
+        <span class="sb-name">MediLink</span>
+      </div>
+      <div class="sb-role-badge sb-role-admin">🛡 Admin</div>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">…</div>
+      <div>
+        <div class="sb-user-name" id="sb-uname">Loading...</div>
+        <div class="sb-user-sub">Session active</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Overview</div>
+        <a href="dashboard.html" class="nav-item active">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Management</div>
+        <a href="hospitals.html" class="nav-item">
+          <span class="nav-icon">🏛</span> Hospitals
+        </a>
+        <a href="doctors.html" class="nav-item">
+          <span class="nav-icon">👨‍⚕️</span> Doctors
+        </a>
+        <a href="patients.html" class="nav-item">
+          <span class="nav-icon">👥</span> All Patients
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="enc-status">
+        <div class="enc-dot"></div>
+        <span>Session secured</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN AREA ═══ -->
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Admin Dashboard</h2>
+        <p>System-wide overview</p>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <div class="stats-grid">
+        <div class="stat-box s-blue">
+          <div class="stat-label">Total Patients</div>
+          <div class="stat-num" id="stat-total-patients">…</div>
+          <div class="stat-sub">Across all institutions</div>
+          <div class="stat-emoji">👥</div>
+        </div>
+        <div class="stat-box s-sky">
+          <div class="stat-label">Hospitals</div>
+          <div class="stat-num" id="stat-total-hospitals">…</div>
+          <div class="stat-sub" id="stat-hosp-breakdown">…</div>
+          <div class="stat-emoji">🏛</div>
+        </div>
+        <div class="stat-box s-green">
+          <div class="stat-label">Registered Doctors</div>
+          <div class="stat-num" id="stat-total-doctors">…</div>
+          <div class="stat-sub">SLMC verified</div>
+          <div class="stat-emoji">👨‍⚕️</div>
+        </div>
+        <div class="stat-box s-purple">
+          <div class="stat-label">Active Prescriptions</div>
+          <div class="stat-num" id="stat-active-rx">…</div>
+          <div class="stat-sub">System-wide</div>
+          <div class="stat-emoji">💊</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">🏥 Hospital Breakdown</div>
+        </div>
+        <div id="hosp-breakdown-list">
+          <div style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Shared toast element -->
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done</span>
+</div>
+
+<!-- PAGE SETUP:
+     1. api.js - shared fetch helpers
+     2. REQUIRED_ROLE - tells auth-guard.js which role this page is for
+     3. auth-guard.js - checks login + role, redirects if not allowed
+     4. this page's own script (at the bottom)
+-->
+<script src="../api.js"></script>
+<script>const REQUIRED_ROLE = "admin";</script>
+<script src="../auth-guard.js"></script>
+
+<script>
+  // This page's logic runs AFTER auth-guard.js confirms the user
+  // is logged in as admin (it dispatches "auth-ready" when done).
+  document.addEventListener("auth-ready", () => {
+    loadDashboardStats();
+    loadHospitalBreakdown();
+  });
+
+  /**
+   * Loads the 4 stat numbers at the top of the dashboard.
+   */
+  async function loadDashboardStats() {
+    try {
+      const stats = await apiAdminDashboard();
+
+      document.getElementById('stat-total-patients').textContent = stats.total_patients;
+      document.getElementById('stat-total-hospitals').textContent = stats.total_hospitals;
+      document.getElementById('stat-hosp-breakdown').textContent =
+        `${stats.govt_hospitals} Govt · ${stats.private_hospitals} Private`;
+      document.getElementById('stat-total-doctors').textContent = stats.total_doctors;
+      document.getElementById('stat-active-rx').textContent = stats.active_prescriptions;
+
+    } catch (err) {
+      showToast('Failed to load dashboard: ' + err.message, 'error');
+    }
+  }
+
+  /**
+   * Loads a small breakdown of hospitals (name, type, beds, doctor count).
+   */
+  async function loadHospitalBreakdown() {
+    const container = document.getElementById('hosp-breakdown-list');
+
+    try {
+      const result = await apiAdminListHospitals();
+      const hospitals = result.hospitals.slice(0, 5); // show top 5
+
+      if (hospitals.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-dim)">No hospitals yet</div>';
+        return;
+      }
+
+      container.innerHTML = hospitals.map(h => `
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span style="font-size:13px;font-weight:700">${h.hospital_name}</span>
+            <span class="badge ${h.hospital_type==='Government'?'badge-govt':'badge-private'}">${h.hospital_type==='Government'?'Govt':'Private'}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-dim)">${(h.bed_capacity||0).toLocaleString()} beds · ${h.doctor_count} doctors</div>
+        </div>`).join('');
+
+    } catch (err) {
+      container.innerHTML = `<div style="text-align:center;padding:24px;color:var(--danger)">Error: ${err.message}</div>`;
+    }
+  }
+</script>
+</body>
+</html>

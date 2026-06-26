@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediLink — Patients</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sb-logo">
+        <div class="sb-icon">🏥</div>
+        <span class="sb-name">MediLink</span>
+      </div>
+      <div class="sb-role-badge sb-role-hospital">🏛 Hospital</div>
+    </div>
+
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-avatar">…</div>
+      <div>
+        <div class="sb-user-name" id="sb-uname">Loading...</div>
+        <div class="sb-user-sub">Session active</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Clinical</div>
+        <a href="dashboard.html" class="nav-item">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a href="patients.html" class="nav-item active">
+          <span class="nav-icon">👥</span> Patients
+        </a>
+        <a href="doctors.html" class="nav-item">
+          <span class="nav-icon">🔍</span> Find Doctors
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="enc-status">
+        <div class="enc-dot"></div>
+        <span>Session secured</span>
+      </div>
+      <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h2>Patient Registry</h2>
+        <p>Patients registered at this hospital</p>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary btn-sm" onclick="openOverlay('overlay-patient')">+ New Patient</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      <div class="alert alert-info">
+        <span>🔐</span>
+        <span>NIC is checked for duplicates before saving. Only hospital staff may register new patients.</span>
+      </div>
+
+      <div class="search-row">
+        <div class="search-wrap">
+          <span class="s-icon">🔍</span>
+          <input type="text" placeholder="Search by name or NIC..." oninput="loadPatients(this.value)">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Patient ID</th><th>Name</th><th>NIC</th><th>Age/Sex</th>
+                <th>Blood</th><th>Condition</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pat-tbody">
+              <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ REGISTER PATIENT MODAL ═══ -->
+<div class="overlay" id="overlay-patient">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">👤 Register New Patient</div>
+      <button class="close-x" onclick="closeOverlay('overlay-patient')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info">
+        <span>ℹ️</span><span>NIC is checked for duplicates before saving.</span>
+      </div>
+      <div class="g2">
+        <div class="form-group"><label>First Name *</label><input type="text" id="np-first" placeholder="e.g., Kasun"></div>
+        <div class="form-group"><label>Last Name *</label><input type="text" id="np-last" placeholder="e.g., Perera"></div>
+        <div class="form-group"><label>NIC Number *</label><input type="text" id="np-nic" placeholder="e.g., 892501234V"></div>
+        <div class="form-group"><label>Date of Birth</label><input type="date" id="np-dob"></div>
+        <div class="form-group">
+          <label>Gender</label>
+          <select id="np-gender"><option>Male</option><option>Female</option><option>Other</option></select>
+        </div>
+        <div class="form-group">
+          <label>Blood Type</label>
+          <select id="np-blood">
+            <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+            <option>O+</option><option>O-</option><option>AB+</option><option>AB-</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="np-phone" placeholder="+94 77 XXX XXXX"></div>
+      </div>
+      <div class="form-group"><label>Address</label><input type="text" id="np-addr" placeholder="Full address"></div>
+      <div class="form-group"><label>Known Allergies</label><input type="text" id="np-allergy" placeholder="e.g., Penicillin, Sulfa drugs"></div>
+      <div class="form-group"><label>Existing Conditions</label><input type="text" id="np-cond" placeholder="e.g., Hypertension, Diabetes"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeOverlay('overlay-patient')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePatient()">💾 Save Patient</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PATIENT DETAIL MODAL ═══ -->
+<div class="overlay" id="overlay-pat-detail">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-head">
+      <div class="modal-title">📋 Patient Details</div>
+      <button class="close-x" onclick="closeOverlay('overlay-pat-detail')">✕</button>
+    </div>
+    <div class="modal-body" id="pat-detail-body">
+      Loading...
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done</span>
+</div>
+
+<script src="../api.js"></script>
+<script>const REQUIRED_ROLE = "hospital";</script>
+<script src="../auth-guard.js"></script>
+
+<script>
+  document.addEventListener("auth-ready", () => {
+    loadPatients();
+  });
+
+  /**
+   * Loads patients registered at THIS hospital, with optional search.
+   * The backend automatically scopes results to current_user.hospital_id.
+   */
+  async function loadPatients(search = '') {
+    const tbody = document.getElementById('pat-tbody');
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">Loading patients...</td></tr>';
+
+    try {
+      const result = await apiHospitalListPatients(search);
+      const patients = result.patients;
+
+      if (patients.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:24px">No patients found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = patients.map(p => {
+        let age = '—';
+        if (p.date_of_birth) {
+          age = Math.floor((new Date() - new Date(p.date_of_birth)) / 31557600000);
+        }
+
+        return `<tr>
+          <td class="mono" style="font-size:11px;color:var(--primary);font-weight:700">ML-${String(p.id).padStart(4, '0')}</td>
+          <td><strong>${p.full_name}</strong></td>
+          <td class="mono" style="font-size:12px">${p.nic}</td>
+          <td>${age}y · ${(p.gender || '?')[0]}</td>
+          <td style="color:var(--danger);font-weight:700">${p.blood_group || '—'}</td>
+          <td style="font-size:12px">${p.existing_conditions || '—'}</td>
+          <td><button class="btn btn-outline btn-xs" onclick="viewPatient(${p.id})">👁 View</button></td>
+        </tr>`;
+      }).join('');
+
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--danger);padding:24px">Error: ${err.message}</td></tr>`;
+    }
+  }
+
+  /**
+   * Registers a new patient using the form values.
+   * The backend checks for duplicate NIC and returns a 409 error if found -
+   * we show that error via toast without crashing the page.
+   */
+  async function savePatient() {
+    const firstName = document.getElementById('np-first').value.trim();
+    const lastName = document.getElementById('np-last').value.trim();
+    const nic = document.getElementById('np-nic').value.trim();
+
+    if (!firstName || !lastName || !nic) {
+      showToast('First name, last name, and NIC are required', 'error');
+      return;
+    }
+
+    const patientData = {
+      nic: nic,
+      first_name: firstName,
+      last_name: lastName,
+      date_of_birth: document.getElementById('np-dob').value || null,
+      gender: document.getElementById('np-gender').value,
+      blood_group: document.getElementById('np-blood').value,
+      phone_number: document.getElementById('np-phone').value || null,
+      address: document.getElementById('np-addr').value || null,
+      allergies: document.getElementById('np-allergy').value || 'None',
+      existing_conditions: document.getElementById('np-cond').value || 'None'
+    };
+
+    try {
+      const result = await apiHospitalRegisterPatient(patientData);
+
+      closeOverlay('overlay-patient');
+
+      // Clear form
+      ['np-first','np-last','np-nic','np-dob','np-phone','np-addr','np-allergy','np-cond']
+        .forEach(id => document.getElementById(id).value = '');
+
+      await loadPatients();
+
+      showToast(`Patient registered — ID: ML-${String(result.patient.id).padStart(4, '0')}`, 'success');
+
+    } catch (err) {
+      // Shows backend errors like "A patient with this NIC is already registered"
+      showToast(err.message, 'error');
+    }
+  }
+
+  /**
+   * Shows full patient details (including prescriptions and surgeries)
+   * in the detail modal.
+   */
+  async function viewPatient(patientId) {
+    const body = document.getElementById('pat-detail-body');
+    body.innerHTML = 'Loading...';
+    openOverlay('overlay-pat-detail');
+
+    try {
+      const result = await apiHospitalGetPatient(patientId);
+      const p = result.patient;
+
+      let age = '—';
+      if (p.date_of_birth) {
+        age = Math.floor((new Date() - new Date(p.date_of_birth)) / 31557600000);
+      }
+
+      body.innerHTML = `
+        <div style="margin-bottom:16px">
+          <div style="font-size:20px;font-weight:800;color:var(--text)">${p.full_name}</div>
+          <div style="font-size:13px;color:var(--text-muted)">NIC: ${p.nic} · Age: ${age} · ${p.gender || '—'}</div>
+        </div>
+
+        <div class="g2 mb16">
+          <div><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700">Blood Type</div><div style="font-weight:700;color:var(--danger)">${p.blood_group || '—'}</div></div>
+          <div><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700">Phone</div><div>${p.phone_number || '—'}</div></div>
+          <div><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700">Allergies</div><div style="color:var(--danger)">${p.allergies || 'None'}</div></div>
+          <div><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;font-weight:700">Conditions</div><div>${p.existing_conditions || 'None'}</div></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="card-title" style="font-size:14px;margin-bottom:10px">💊 Prescriptions (${p.prescriptions.length})</div>
+        ${p.prescriptions.length === 0
+          ? '<div style="color:var(--text-dim);font-size:13px;margin-bottom:16px">No prescriptions on record.</div>'
+          : p.prescriptions.map(rx => `
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:10px 14px;margin-bottom:8px">
+                <strong>${rx.medicine_name}</strong> — ${rx.dosage || ''} ${rx.frequency || ''}
+                <div style="font-size:11px;color:var(--text-dim)">Prescribed by ${rx.doctor_name || 'Unknown'} · ${rx.status}</div>
+              </div>`).join('')
+        }
+
+        <div class="divider"></div>
+
+        <div class="card-title" style="font-size:14px;margin-bottom:10px">✂️ Surgery History (${p.surgeries.length})</div>
+        ${p.surgeries.length === 0
+          ? '<div style="color:var(--text-dim);font-size:13px">No surgery records.</div>'
+          : p.surgeries.map(s => `
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:10px 14px;margin-bottom:8px">
+                <strong>${s.surgery_name}</strong>
+                <div style="font-size:11px;color:var(--text-dim)">${s.surgery_date || 'Date unknown'}</div>
+              </div>`).join('')
+        }
+      `;
+
+    } catch (err) {
+      body.innerHTML = `<div style="color:var(--danger);text-align:center;padding:24px">Error: ${err.message}</div>`;
+    }
+  }
+</script>
+</body>
+</html>
