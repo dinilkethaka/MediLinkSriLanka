@@ -1,38 +1,32 @@
-# app.py
-# PHASE 5 CHANGES:
-#   - Import doctor_bp
-#   - Register doctor_bp
-# Everything else unchanged from Phase 4.
-
 from flask import Flask, jsonify
-from flask_cors import CORS
+from flask_cors import CORS # communicate frontend and backend when running on different ports
 from flask_login import LoginManager
-
 from config import Config
 from database.db import db
+from models import User, Hospital, Doctor, Patient, Prescription, SurgeryHistory #configure tables
 
-from models import User, Hospital, Doctor, Patient, Prescription, SurgeryHistory
-
+#imports routes
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
 from routes.hospital_routes import hospital_bp
-from routes.doctor_routes import doctor_bp  # PHASE 5
-
+from routes.doctor_routes import doctor_bp 
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    db.init_app(app)
+    db.init_app(app) # connect DB to flask
     CORS(app, supports_credentials=True)
 
     login_manager = LoginManager()
     login_manager.init_app(app)
 
+    #access without login
     @login_manager.unauthorized_handler
     def unauthorized():
         return jsonify({"error": "Unauthorized: please log in"}), 401
-
+    
+    #If user refresh page 
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
@@ -40,16 +34,18 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(hospital_bp)
-    app.register_blueprint(doctor_bp)  # PHASE 5
+    app.register_blueprint(doctor_bp)  
 
+    #create tables
     with app.app_context():
         db.create_all()
-        print("✅ Database tables created (or already exist).")
+        print("Database tables created (or already exist).")
 
+    #Identify / as homepage
     @app.route("/")
     def index():
         return jsonify({
-            "message": "MediLink backend is running!",
+            "message": "MediLink backend is running",
             "status": "ok"
         })
 
@@ -57,6 +53,6 @@ def create_app():
 
 
 if __name__ == "__main__":
-    print("🚀 Starting MediLink Flask App...")
+    print("Starting MediLink Flask App...")
     app = create_app()
     app.run(debug=True)
