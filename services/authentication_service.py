@@ -5,8 +5,8 @@
 #   2. role_required()     - a decorator for Role-Based Access Control (RBAC)
 # ---------------------------------------------------------
 
-from functools import wraps
-from flask import jsonify
+from functools import wraps #decorator
+from flask import jsonify #return JSON responses
 from flask_login import current_user
 
 from models.user import User
