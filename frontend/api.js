@@ -1,10 +1,3 @@
-// api.js
-// ---------------------------------------------------------
-// Shared fetch() helper for talking to the Flask backend.
-// "credentials: 'include'" sends/receives the session cookie,
-// which is required for Flask-Login's session-based authentication.
-// ---------------------------------------------------------
-
 const API_BASE = "http://127.0.0.1:5000";
 
 /**
@@ -22,7 +15,7 @@ async function apiRequest(path, method = "GET", body = null, isFormData = false)
 
   if (body !== null) {
     if (isFormData) {
-      options.body = body; // browser sets Content-Type automatically
+      options.body = body;
     } else {
       options.headers = { "Content-Type": "application/json" };
       options.body = JSON.stringify(body);
