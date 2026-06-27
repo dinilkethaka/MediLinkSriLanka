@@ -1,0 +1,9 @@
+
+200 - OK Request successful	
+201	- Successfully created a new record	(Add Hospital, Doctor, Patient, Prescription)
+400	- Invalid or missing request data	(Missing fields, invalid JSON, wrong date format, invalid values)
+401	- User is not logged in	(Invalid login, expired session, accessing protected routes)
+403	- User is logged in but doesn't have permission	Wrong role or unauthorized access
+404	- Requested resource doesn't exist	(Hospital, Doctor, Patient ID not found)
+409	- Duplicate data already exists	(Duplicate NIC, Hospital, Email, Username, License Number)
+500	- Server-side error	(Unexpected application/database crash)
