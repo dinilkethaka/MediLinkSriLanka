@@ -85,7 +85,7 @@
   </div>
 </div>
 
-<!-- ═══ ADD DOCTOR MODAL ═══ -->
+<!--Add doctor-->
 <div class="overlay" id="overlay-doctor">
   <div class="modal">
     <div class="modal-head">
@@ -139,9 +139,7 @@
     loadDoctors();
   });
 
-  /**
-   * Loads all doctors into the table.
-   */
+
   async function loadDoctors() {
     const tbody = document.getElementById('doc-tbody');
 
@@ -168,10 +166,7 @@
     }
   }
 
-  /**
-   * Opens the "Add Doctor" modal AFTER populating the hospital dropdown
-   * with real hospitals.
-   */
+ 
   async function openAddDoctorModal() {
     const sel = document.getElementById('nd-hosp');
 
@@ -186,9 +181,6 @@
     openOverlay('overlay-doctor');
   }
 
-  /**
-   * Saves the new doctor (profile + login account), then reloads the table.
-   */
   async function saveDoctor() {
     const doctorData = {
       doctor_name: document.getElementById('nd-name').value.trim(),
@@ -213,7 +205,7 @@
 
       closeOverlay('overlay-doctor');
 
-      // Clear form
+
       ['nd-name','nd-nic','nd-reg','nd-phone','nd-email','nd-username','nd-password']
         .forEach(id => document.getElementById(id).value = '');
 
@@ -222,8 +214,6 @@
       showToast(`Doctor registered: ${result.doctor.doctor_name}`, 'success');
 
     } catch (err) {
-      // Shows backend errors like "A doctor with this license number already exists"
-      // or "This username is already taken"
       showToast(err.message, 'error');
     }
   }

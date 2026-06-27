@@ -94,8 +94,6 @@
 
 <script>
   document.addEventListener("auth-ready", () => {
-    // If no hospital was selected this session, send them back
-    // to the hospital picker.
     const hospName = sessionStorage.getItem('doctorCurrentHospitalName');
     if (!hospName) {
       window.location.href = 'select-hospital.html';
@@ -104,24 +102,17 @@
 
     document.getElementById('sb-current-hosp').textContent = 'At: ' + hospName;
 
-    // Load all patients by default (empty search = everyone, per backend)
     loadPatients();
   });
 
-  /**
-   * Clears the selected hospital and sends the doctor back to
-   * the hospital picker (e.g. if they're now working somewhere else).
-   */
+
   function changeHospital() {
     sessionStorage.removeItem('doctorCurrentHospitalId');
     sessionStorage.removeItem('doctorCurrentHospitalName');
     window.location.href = 'select-hospital.html';
   }
 
-  /**
-   * Searches patients across ALL hospitals (no hospital_id filter -
-   * doctors need broad access for centralized record-keeping).
-   */
+
   async function loadPatients(search = '') {
     const tbody = document.getElementById('pat-tbody');
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</td></tr>';

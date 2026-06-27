@@ -100,10 +100,6 @@
     window.location.href = 'select-hospital.html';
   }
 
-  /**
-   * Loads all prescriptions written by the logged-in doctor
-   * (backend filters by current_user.doctor_id automatically).
-   */
   async function loadMyPrescriptions() {
     const tbody = document.getElementById('rx-tbody');
 

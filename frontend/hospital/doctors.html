@@ -104,10 +104,6 @@
     runSearch();
   });
 
-  /**
-   * Reads the search box and specialty dropdown, then loads matching
-   * doctors from across ALL hospitals (no hospital_id filter on this endpoint).
-   */
   function runSearch() {
     const search = document.getElementById('doc-search-input').value;
     const specialization = document.getElementById('doc-spec-select').value;

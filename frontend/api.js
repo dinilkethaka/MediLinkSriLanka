@@ -1,12 +1,5 @@
 const API_BASE = "http://127.0.0.1:5000";
 
-/**
- * Generic API request helper.
- * @param {string} path - URL path, e.g. "/api/auth/login"
- * @param {string} method - "GET", "POST", etc.
- * @param {object|FormData|null} body - data to send
- * @param {boolean} isFormData - true for file uploads (FormData)
- */
 async function apiRequest(path, method = "GET", body = null, isFormData = false) {
   const options = {
     method: method,
@@ -32,9 +25,8 @@ async function apiRequest(path, method = "GET", body = null, isFormData = false)
   return data;
 }
 
-// ---------------------------------------------------------
+
 // AUTH
-// ---------------------------------------------------------
 function apiLogin(username, password) {
   return apiRequest("/api/auth/login", "POST", { username, password });
 }
@@ -45,9 +37,7 @@ function apiMe() {
   return apiRequest("/api/auth/me", "GET");
 }
 
-// ---------------------------------------------------------
 // ADMIN ENDPOINTS
-// ---------------------------------------------------------
 function apiAdminDashboard() {
   return apiRequest("/api/admin/dashboard", "GET");
 }
@@ -76,15 +66,7 @@ function apiAdminImportCsv(file, hospitalId) {
   return apiRequest("/api/admin/patients/import-csv", "POST", formData, true);
 }
 
-// ---------------------------------------------------------
 // SHARED UI HELPERS
-// ---------------------------------------------------------
-
-/**
- * Shows a toast notification at the bottom-right of the screen.
- * Requires a <div class="toast" id="toast">...</div> element on the page
- * (see the shared toast HTML snippet included in every page).
- */
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
   if (!t) return;
@@ -96,24 +78,16 @@ function showToast(msg, type = 'success') {
   t._tid = setTimeout(() => t.classList.remove('show'), 3800);
 }
 
-/**
- * Opens a modal overlay by ID.
- */
+
 function openOverlay(id) {
   document.getElementById(id).classList.add('open');
 }
 
-/**
- * Closes a modal overlay by ID.
- */
 function closeOverlay(id) {
   document.getElementById(id).classList.remove('open');
 }
 
-// ---------------------------------------------------------
-// HOSPITAL ENDPOINTS (Phase 7b)
-// ---------------------------------------------------------
-
+// HOSPITAL ENDPOINTS
 function apiHospitalDashboard() {
   return apiRequest("/api/hospital/dashboard", "GET");
 }
@@ -139,10 +113,8 @@ function apiHospitalSearchDoctors(search = "", specialization = "") {
   return apiRequest(`/api/hospital/doctors${query}`, "GET");
 }
 
-// ---------------------------------------------------------
-// DOCTOR ENDPOINTS (Phase 7c)
-// ---------------------------------------------------------
 
+// DOCTOR ENDPOINTS 
 function apiDoctorListHospitals() {
   return apiRequest("/api/doctor/hospitals", "GET");
 }

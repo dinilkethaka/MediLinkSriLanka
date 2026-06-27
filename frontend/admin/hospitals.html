@@ -11,7 +11,7 @@
 
 <div class="app-shell">
 
-  <!-- ═══ SIDEBAR (same on every admin page) ═══ -->
+  <!--Side bar-->
   <aside class="sidebar">
     <div class="sidebar-brand">
       <div class="sb-logo">
@@ -58,7 +58,7 @@
     </div>
   </aside>
 
-  <!-- ═══ MAIN AREA ═══ -->
+  <!-- Main area -->
   <div class="main-area">
     <div class="topbar">
       <div class="topbar-left">
@@ -105,7 +105,7 @@
   </div>
 </div>
 
-<!-- ═══ ADD HOSPITAL MODAL ═══ -->
+<!--Add hospital-->
 <div class="overlay" id="overlay-hospital">
   <div class="modal" style="max-width:640px">
     <div class="modal-head">
@@ -144,7 +144,6 @@
   </div>
 </div>
 
-<!-- Shared toast element -->
 <div class="toast" id="toast">
   <span id="toast-icon">✅</span>
   <span id="toast-msg">Done</span>
@@ -159,9 +158,6 @@
     loadHospitals();
   });
 
-  /**
-   * Loads all hospitals into the table AND the CSV-target dropdown.
-   */
   async function loadHospitals() {
     const tbody = document.getElementById('hosp-tbody');
     const select = document.getElementById('csv-target-hospital');
@@ -185,7 +181,6 @@
         </tr>`).join('');
       }
 
-      // Populate CSV-target dropdown
       select.innerHTML = hospitals.map(h =>
         `<option value="${h.id}">${h.hospital_name}</option>`
       ).join('');
@@ -195,9 +190,6 @@
     }
   }
 
-  /**
-   * Saves the new hospital using the form values, then reloads the table.
-   */
   async function saveHospital() {
     const name = document.getElementById('nh-name').value.trim();
     if (!name) {
@@ -207,7 +199,7 @@
 
     const hospitalData = {
       hospital_name: name,
-      hospital_type: document.getElementById('nh-type').value, // "Government" or "Private"
+      hospital_type: document.getElementById('nh-type').value, // Government or Private
       province: document.getElementById('nh-prov').value,
       city: document.getElementById('nh-city').value,
       address: document.getElementById('nh-addr').value || null,
@@ -227,15 +219,10 @@
       showToast(`Hospital registered — ID: ${result.hospital.id}`, 'success');
 
     } catch (err) {
-      // Shows backend errors like "A hospital with this name already exists"
       showToast(err.message, 'error');
     }
   }
 
-  /**
-   * Handles the CSV file input change -> uploads to backend and
-   * shows a summary of the import.
-   */
   async function handleCsvUpload(input) {
     const file = input.files[0];
     if (!file) return;
@@ -263,7 +250,6 @@
 
       showToast(`CSV import: ${s.imported} patients imported`, 'success');
 
-      // Refresh hospital list (doctor counts unaffected, but good practice)
       await loadHospitals();
 
       input.value = '';

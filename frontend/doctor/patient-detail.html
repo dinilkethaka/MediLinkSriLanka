@@ -73,12 +73,11 @@
 <script src="../auth-guard.js"></script>
 
 <script>
-  // Read ?id= and &prescribe= from the URL.
   const urlParams = new URLSearchParams(window.location.search);
   const patientId = urlParams.get('id');
   const autoPrescribe = urlParams.get('prescribe') === '1';
 
-  let currentPatient = null; // cache the loaded patient for the prescribe form
+  let currentPatient = null;
 
   document.addEventListener("auth-ready", () => {
     const hospName = sessionStorage.getItem('doctorCurrentHospitalName');
@@ -103,10 +102,6 @@
     window.location.href = 'select-hospital.html';
   }
 
-  /**
-   * Loads the patient's full details (info + prescriptions + surgeries)
-   * and renders the whole page.
-   */
   async function loadPatient() {
     const container = document.getElementById('page-content');
 
@@ -124,10 +119,6 @@
     }
   }
 
-  /**
-   * Renders the full page: hero header, tabs, and tab content.
-   * We rebuild this whenever data changes (e.g. after adding a prescription).
-   */
   function renderPage() {
     const p = currentPatient;
     let age = '—';
@@ -222,12 +213,9 @@
       </div>
     `;
 
-    showTab('tab-history'); // default tab
+    showTab('tab-history'); 
   }
 
-  /**
-   * Switches between tabs (History / Medications / Prescribe / Info).
-   */
   function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('btn-primary'));
@@ -239,11 +227,6 @@
     if (btn) btn.classList.add('btn-primary');
   }
 
-  /**
-   * Submits the new prescription form to the backend.
-   * On success, reloads the patient's data so the new prescription
-   * shows up immediately in the Medications tab.
-   */
   async function savePrescription() {
     const medicineName = document.getElementById('rx-med').value.trim();
 
@@ -270,9 +253,8 @@
 
       showToast('Prescription saved successfully', 'success');
 
-      // Reload the patient's full data so the Medications tab updates
       await loadPatient();
-      showTab('tab-meds'); // jump to Medications tab to show the result
+      showTab('tab-meds'); 
 
     } catch (err) {
       showToast(err.message, 'error');

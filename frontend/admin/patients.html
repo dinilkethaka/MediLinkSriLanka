@@ -106,9 +106,6 @@
     loadPatients();
   });
 
-  /**
-   * Loads patients into the table, with an optional search term.
-   */
   async function loadPatients(search = '') {
     const tbody = document.getElementById('pat-tbody');
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</td></tr>';

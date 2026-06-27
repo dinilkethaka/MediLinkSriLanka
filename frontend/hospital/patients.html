@@ -91,7 +91,7 @@
   </div>
 </div>
 
-<!-- ═══ REGISTER PATIENT MODAL ═══ -->
+<!-- Register patient-->
 <div class="overlay" id="overlay-patient">
   <div class="modal">
     <div class="modal-head">
@@ -128,7 +128,7 @@
   </div>
 </div>
 
-<!-- ═══ PATIENT DETAIL MODAL ═══ -->
+<!-- Patient details -->
 <div class="overlay" id="overlay-pat-detail">
   <div class="modal" style="max-width:640px">
     <div class="modal-head">
@@ -155,10 +155,6 @@
     loadPatients();
   });
 
-  /**
-   * Loads patients registered at THIS hospital, with optional search.
-   * The backend automatically scopes results to current_user.hospital_id.
-   */
   async function loadPatients(search = '') {
     const tbody = document.getElementById('pat-tbody');
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-dim)">Loading patients...</td></tr>';
@@ -194,11 +190,6 @@
     }
   }
 
-  /**
-   * Registers a new patient using the form values.
-   * The backend checks for duplicate NIC and returns a 409 error if found -
-   * we show that error via toast without crashing the page.
-   */
   async function savePatient() {
     const firstName = document.getElementById('np-first').value.trim();
     const lastName = document.getElementById('np-last').value.trim();
@@ -227,7 +218,6 @@
 
       closeOverlay('overlay-patient');
 
-      // Clear form
       ['np-first','np-last','np-nic','np-dob','np-phone','np-addr','np-allergy','np-cond']
         .forEach(id => document.getElementById(id).value = '');
 
@@ -236,15 +226,10 @@
       showToast(`Patient registered — ID: ML-${String(result.patient.id).padStart(4, '0')}`, 'success');
 
     } catch (err) {
-      // Shows backend errors like "A patient with this NIC is already registered"
       showToast(err.message, 'error');
     }
   }
 
-  /**
-   * Shows full patient details (including prescriptions and surgeries)
-   * in the detail modal.
-   */
   async function viewPatient(patientId) {
     const body = document.getElementById('pat-detail-body');
     body.innerHTML = 'Loading...';

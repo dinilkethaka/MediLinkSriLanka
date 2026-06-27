@@ -47,9 +47,6 @@
     loadHospitalOptions();
   });
 
-  /**
-   * Loads all hospitals into the dropdown.
-   */
   async function loadHospitalOptions() {
     const sel = document.getElementById('hosp-select');
 
@@ -65,17 +62,7 @@
     }
   }
 
-  /**
-   * Saves the chosen hospital to sessionStorage (cleared when the
-   * browser tab closes) and proceeds to the doctor dashboard.
-   *
-   * WHY sessionStorage and not the backend? This is purely a frontend
-   * "context" concept - which hospital the doctor says they're AT right
-   * now for THIS browsing session. It doesn't need to be a permanent
-   * database fact, and our prescription endpoint already accepts a
-   * hospital_id directly in the request, so we just need to remember
-   * this choice for display purposes and to pre-fill that field.
-   */
+
   function confirmHospital() {
     const sel = document.getElementById('hosp-select');
     const option = sel.options[sel.selectedIndex];

@@ -10,8 +10,7 @@
 <body>
 
 <div class="app-shell">
-
-  <!-- ═══ SIDEBAR ═══ -->
+<!-- Side bar -->
   <aside class="sidebar">
     <div class="sidebar-brand">
       <div class="sb-logo">
@@ -58,7 +57,7 @@
     </div>
   </aside>
 
-  <!-- ═══ MAIN AREA ═══ -->
+  <!-- Main area -->
   <div class="main-area">
     <div class="topbar">
       <div class="topbar-left">
@@ -109,33 +108,22 @@
   </div>
 </div>
 
-<!-- Shared toast element -->
 <div class="toast" id="toast">
   <span id="toast-icon">✅</span>
   <span id="toast-msg">Done</span>
 </div>
 
-<!-- PAGE SETUP:
-     1. api.js - shared fetch helpers
-     2. REQUIRED_ROLE - tells auth-guard.js which role this page is for
-     3. auth-guard.js - checks login + role, redirects if not allowed
-     4. this page's own script (at the bottom)
--->
+<!-- Page setup-->
 <script src="../api.js"></script>
 <script>const REQUIRED_ROLE = "admin";</script>
 <script src="../auth-guard.js"></script>
 
 <script>
-  // This page's logic runs AFTER auth-guard.js confirms the user
-  // is logged in as admin (it dispatches "auth-ready" when done).
   document.addEventListener("auth-ready", () => {
     loadDashboardStats();
     loadHospitalBreakdown();
   });
 
-  /**
-   * Loads the 4 stat numbers at the top of the dashboard.
-   */
   async function loadDashboardStats() {
     try {
       const stats = await apiAdminDashboard();
@@ -152,15 +140,12 @@
     }
   }
 
-  /**
-   * Loads a small breakdown of hospitals (name, type, beds, doctor count).
-   */
   async function loadHospitalBreakdown() {
     const container = document.getElementById('hosp-breakdown-list');
 
     try {
       const result = await apiAdminListHospitals();
-      const hospitals = result.hospitals.slice(0, 5); // show top 5
+      const hospitals = result.hospitals.slice(0, 5);
 
       if (hospitals.length === 0) {
         container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-dim)">No hospitals yet</div>';
