@@ -9,41 +9,37 @@
 </head>
 <body>
 
-<!-- ═══ ROLE SELECTION SCREEN ═══ -->
 <div id="screen-role">
   <div class="role-header">
     <div class="brand-logo">
       <div class="brand-icon">🏥</div>
       <span class="brand-name">MediLink</span>
     </div>
-    <div class="brand-tagline">Centralized Health Management System · Sri Lanka</div>
+    <div class="brand-tagline">Centralized Health Management System - Sri Lanka</div>
   </div>
 
   <div class="role-cards">
     <div class="role-card" onclick="selectRole('admin')">
       <div class="role-icon-wrap">🛡</div>
       <div class="role-card-title">Admin</div>
-      <div class="role-card-desc">Full system access, manage hospitals, doctors, and patients</div>
       <div class="role-card-arrow">Login →</div>
     </div>
 
     <div class="role-card" onclick="selectRole('hospital')">
       <div class="role-icon-wrap">🏛</div>
       <div class="role-card-title">Hospital</div>
-      <div class="role-card-desc">Register & manage patients, search doctors</div>
       <div class="role-card-arrow">Login →</div>
     </div>
 
     <div class="role-card" onclick="selectRole('doctor')">
       <div class="role-icon-wrap">👨‍⚕️</div>
       <div class="role-card-title">Doctor</div>
-      <div class="role-card-desc">View patient history, prescribe medications</div>
       <div class="role-card-arrow">Login →</div>
     </div>
   </div>
 </div>
 
-<!-- ═══ LOGIN SCREEN ═══ -->
+<!-- After login -->
 <div id="screen-login">
   <a href="#" class="login-back" onclick="showRoleScreen()">← Back</a>
 
@@ -64,27 +60,19 @@
 
     <button class="btn btn-primary btn-full" onclick="doLogin()">Continue →</button>
 
-    <div class="alert alert-info mt16" style="margin-bottom:0">
-      <span>🔐</span>
-      <span>All sessions are managed securely by the server.</span>
-    </div>
   </div>
 </div>
 
-<!-- Shared toast element (used by api.js's showToast) -->
 <div class="toast" id="toast">
   <span id="toast-icon">✅</span>
   <span id="toast-msg">Done</span>
 </div>
 
+<!--apiLogin() , apiLogout() , apiAdminDashboard() -->
 <script src="api.js"></script>
 <script>
   let selectedRole = null;
 
-  /**
-   * Shows the login form for the chosen role.
-   * Updates the badge/title text to match.
-   */
   function selectRole(role) {
     selectedRole = role;
 
@@ -101,24 +89,11 @@
     document.getElementById('screen-login').style.display = 'flex';
   }
 
-  /**
-   * Goes back to the role selection screen.
-   */
   function showRoleScreen() {
     document.getElementById('screen-login').style.display = 'none';
     document.getElementById('screen-role').style.display = 'flex';
   }
 
-  /**
-   * Logs the user in via the backend, then redirects to the
-   * correct dashboard based on the role returned by the server.
-   *
-   * IMPORTANT: we use `result.user.role` (from the BACKEND response),
-   * NOT `selectedRole` (which the user just clicked) - this way, if
-   * someone clicks "Admin" but logs in with a hospital account, they
-   * still get redirected to the CORRECT dashboard for their actual role
-   * (or you could choose to show an error instead - see note below).
-   */
   async function doLogin() {
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value.trim();
@@ -134,9 +109,6 @@
 
       showToast('Login successful!', 'success');
 
-      // Redirect to the correct dashboard based on the account's
-      // ACTUAL role (from the backend), regardless of which role
-      // card was clicked.
      const redirects = {
         admin: 'admin/dashboard.html',
         hospital: 'hospital/dashboard.html',
