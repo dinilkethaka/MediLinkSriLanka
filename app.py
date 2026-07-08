@@ -55,4 +55,4 @@ def create_app():
 if __name__ == "__main__":
     print("Starting MediLink Flask App...")
     app = create_app()
-    app.run(debug=True)
+    app.run(debug=True, ssl_context=('localhost+2.pem', 'localhost+2-key.pem'))
