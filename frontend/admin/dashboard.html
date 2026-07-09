@@ -120,8 +120,7 @@
         <div id="backup-status" style="display:none;margin-bottom:14px"></div>
 
         <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">
-          Automatic backup runs every Sunday at 9:00 AM.
-          All backups are saved to the "MediLink Backups" folder in Google Drive.
+          Automatic backup runs every Sunday at 1:00 AM.
         </div>
 
         <div id="backup-list">
@@ -204,12 +203,25 @@
       try {
         const result = await apiAdminBackup();
 
+        const backupTime = new Date().toLocaleString("en-LK", {
+          timeZone: "Asia/Colombo",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false
+        });
+
         statusEl.className = 'alert alert-success';
         statusEl.innerHTML = `
       <span>
-        Backup complete: <strong>${result.filename}</strong>
-        (${result.size_kb} KB)
-      </span>`;
+       complete: <strong>${result.filename}</strong>
+      (${result.size_kb} KB)
+        <br>
+        Backup Time: ${backupTime}
+        </span>`;
 
         await loadBackupList();
 

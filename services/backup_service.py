@@ -16,6 +16,8 @@ from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from datetime import timezone, timedelta
+SL_TIMEZONE = timezone(timedelta(hours=5, minutes=30))
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
@@ -106,8 +108,7 @@ def upload_backup(service, folder_id):
     if not os.path.exists(DB_PATH):
         print(f"Database file not found: {DB_PATH}")
         return None
-
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+    timestamp = datetime.now(SL_TIMEZONE).strftime("%Y-%m-%d_%H-%M")
     backup_filename = f"medilink_{timestamp}.db"
     temp_path = f"temp_backup_{timestamp}.db"
 
@@ -169,7 +170,9 @@ def run_backup():
     Returns:
         dict: { "success": bool, "message": str, ... }
     """
-    print(f"Starting backup at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    # In run_backup()
+    print(f"Starting backup at {datetime.now(SL_TIMEZONE).strftime('%Y-%m-%d %H:%M:%S')}")
+
 
     service = authenticate()
     if not service:

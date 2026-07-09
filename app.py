@@ -49,7 +49,7 @@ def create_app():
 
     # ---------------------------------------------------------
     # BACKUP: Weekly automatic backup scheduler
-    # Runs every Sunday at 9:00 AM in a background thread.
+    # Runs every Sunday at 1:00 AM in a background thread.
     # Does not slow down or block any web requests.
     # ---------------------------------------------------------
     scheduler = BackgroundScheduler()
@@ -58,7 +58,7 @@ def create_app():
         func=_scheduled_backup,
         trigger='cron',
         day_of_week='sun',
-        hour=9,
+        hour=1,
         minute=0,
         id='weekly_backup',
         name='Weekly Google Drive Backup',
@@ -66,7 +66,7 @@ def create_app():
     )
 
     scheduler.start()
-    print("Weekly backup scheduler started (every Sunday at 9:00 AM).")
+    print("Weekly backup scheduler started (every Sunday at 1:00 AM).")
 
     # Shut down scheduler cleanly when Flask stops
     atexit.register(lambda: scheduler.shutdown())
@@ -83,7 +83,7 @@ def create_app():
 
 def _scheduled_backup():
     """
-    Called automatically by APScheduler every Sunday at 9 AM.
+    Called automatically by APScheduler every Sunday at 1 AM.
     Runs outside a Flask request context.
     """
     from services.backup_service import run_backup
