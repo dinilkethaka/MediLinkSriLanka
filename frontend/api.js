@@ -140,3 +140,13 @@ function apiDoctorListMyPrescriptions() {
 function apiVerifyOtp(otp) {
   return apiRequest("/api/auth/verify-otp", "POST", { otp });
 }
+
+// manual Google Drive backup
+function apiAdminBackup() {
+  return apiRequest("/api/admin/backup", "POST");
+}
+
+// List previous backups from Google Drive
+function apiAdminListBackups() {
+  return apiRequest("/api/admin/backup/list", "GET");
+}

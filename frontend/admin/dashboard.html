@@ -1,170 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MediLink — Admin Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediLink — Admin Dashboard</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Merriweather:wght@700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
 </head>
+
 <body>
 
-<div class="app-shell">
-<!-- Side bar -->
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <div class="sb-logo">
-        <div class="sb-icon">🏥</div>
-        <span class="sb-name">MediLink</span>
-      </div>
-      <div class="sb-role-badge sb-role-admin">🛡 Admin</div>
-    </div>
-
-    <div class="sb-user">
-      <div class="sb-avatar" id="sb-avatar">…</div>
-      <div>
-        <div class="sb-user-name" id="sb-uname">Loading...</div>
-        <div class="sb-user-sub">Session active</div>
-      </div>
-    </div>
-
-    <nav>
-      <div class="nav-section">
-        <div class="nav-label">Overview</div>
-        <a href="dashboard.html" class="nav-item active">
-          <span class="nav-icon">📊</span> Dashboard
-        </a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-label">Management</div>
-        <a href="hospitals.html" class="nav-item">
-          <span class="nav-icon">🏛</span> Hospitals
-        </a>
-        <a href="doctors.html" class="nav-item">
-          <span class="nav-icon">👨‍⚕️</span> Doctors
-        </a>
-        <a href="patients.html" class="nav-item">
-          <span class="nav-icon">👥</span> All Patients
-        </a>
-      </div>
-    </nav>
-
-    <div class="sidebar-foot">
-      <div class="enc-status">
-        <div class="enc-dot"></div>
-      </div>
-      <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
-    </div>
-  </aside>
-
-  <!-- Main area -->
-  <div class="main-area">
-    <div class="topbar">
-      <div class="topbar-left">
-        <h2>Admin Dashboard</h2>
-        <p>System-wide overview</p>
-      </div>
-    </div>
-
-    <div class="page-content">
-
-      <div class="stats-grid">
-        <div class="stat-box s-blue">
-          <div class="stat-label">Total Patients</div>
-          <div class="stat-num" id="stat-total-patients">…</div>
-          <div class="stat-sub">Across all institutions</div>
-          <div class="stat-emoji">👥</div>
+  <div class="app-shell">
+    <!-- Side bar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sb-logo">
+          <div class="sb-icon">🏥</div>
+          <span class="sb-name">MediLink</span>
         </div>
-        <div class="stat-box s-sky">
-          <div class="stat-label">Hospitals</div>
-          <div class="stat-num" id="stat-total-hospitals">…</div>
-          <div class="stat-sub" id="stat-hosp-breakdown">…</div>
-          <div class="stat-emoji">🏛</div>
-        </div>
-        <div class="stat-box s-green">
-          <div class="stat-label">Registered Doctors</div>
-          <div class="stat-num" id="stat-total-doctors">…</div>
-          <div class="stat-sub">SLMC verified</div>
-          <div class="stat-emoji">👨‍⚕️</div>
-        </div>
-        <div class="stat-box s-purple">
-          <div class="stat-label">Active Prescriptions</div>
-          <div class="stat-num" id="stat-active-rx">…</div>
-          <div class="stat-sub">System-wide</div>
-          <div class="stat-emoji">💊</div>
+        <div class="sb-role-badge sb-role-admin">🛡 Admin</div>
+      </div>
+
+      <div class="sb-user">
+        <div class="sb-avatar" id="sb-avatar">…</div>
+        <div>
+          <div class="sb-user-name" id="sb-uname">Loading...</div>
+          <div class="sb-user-sub">Session active</div>
         </div>
       </div>
 
-      <div class="card">
+      <nav>
+        <div class="nav-section">
+          <div class="nav-label">Overview</div>
+          <a href="dashboard.html" class="nav-item active">
+            <span class="nav-icon">📊</span> Dashboard
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-label">Management</div>
+          <a href="hospitals.html" class="nav-item">
+            <span class="nav-icon">🏛</span> Hospitals
+          </a>
+          <a href="doctors.html" class="nav-item">
+            <span class="nav-icon">👨‍⚕️</span> Doctors
+          </a>
+          <a href="patients.html" class="nav-item">
+            <span class="nav-icon">👥</span> All Patients
+          </a>
+        </div>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="enc-status">
+          <div class="enc-dot"></div>
+        </div>
+        <button class="btn btn-outline btn-sm" style="width:100%" onclick="handleLogout()">⬡ Sign Out</button>
+      </div>
+    </aside>
+
+    <!-- Main area -->
+    <div class="main-area">
+      <div class="topbar">
+        <div class="topbar-left">
+          <h2>Admin Dashboard</h2>
+          <p>System-wide overview</p>
+        </div>
+      </div>
+
+      <div class="page-content">
+
+        <div class="stats-grid">
+          <div class="stat-box s-blue">
+            <div class="stat-label">Total Patients</div>
+            <div class="stat-num" id="stat-total-patients">…</div>
+            <div class="stat-sub">Across all institutions</div>
+            <div class="stat-emoji">👥</div>
+          </div>
+          <div class="stat-box s-sky">
+            <div class="stat-label">Hospitals</div>
+            <div class="stat-num" id="stat-total-hospitals">…</div>
+            <div class="stat-sub" id="stat-hosp-breakdown">…</div>
+            <div class="stat-emoji">🏛</div>
+          </div>
+          <div class="stat-box s-green">
+            <div class="stat-label">Registered Doctors</div>
+            <div class="stat-num" id="stat-total-doctors">…</div>
+            <div class="stat-sub">SLMC verified</div>
+            <div class="stat-emoji">👨‍⚕️</div>
+          </div>
+          <div class="stat-box s-purple">
+            <div class="stat-label">Active Prescriptions</div>
+            <div class="stat-num" id="stat-active-rx">…</div>
+            <div class="stat-sub">System-wide</div>
+            <div class="stat-emoji">💊</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">🏥 Hospital Breakdown</div>
+          </div>
+          <div id="hosp-breakdown-list">
+            <div style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="card" style="margin-top:16px">
         <div class="card-head">
-          <div class="card-title">🏥 Hospital Breakdown</div>
+          <div class="card-title">Google Drive Backup</div>
+          <button class="btn btn-primary btn-sm" id="backup-btn" onclick="runBackup()">
+            Backup Now
+          </button>
         </div>
-        <div id="hosp-breakdown-list">
-          <div style="text-align:center;padding:24px;color:var(--text-dim)">Loading...</div>
+
+        <div id="backup-status" style="display:none;margin-bottom:14px"></div>
+
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">
+          Automatic backup runs every Sunday at 9:00 AM.
+          All backups are saved to the "MediLink Backups" folder in Google Drive.
+        </div>
+
+        <div id="backup-list">
+          <div style="text-align:center;padding:16px;color:var(--text-dim);font-size:13px">
+            Loading backup history...
+          </div>
         </div>
       </div>
-
     </div>
   </div>
-</div>
 
-<div class="toast" id="toast">
-  <span id="toast-icon">✅</span>
-  <span id="toast-msg">Done</span>
-</div>
+  <div class="toast" id="toast">
+    <span id="toast-icon">✅</span>
+    <span id="toast-msg">Done</span>
+  </div>
 
-<!-- Page setup-->
-<script src="../api.js"></script>
-<script>const REQUIRED_ROLE = "admin";</script>
-<script src="../auth-guard.js"></script>
+  <!-- Page setup-->
+  <script src="../api.js"></script>
+  <script>const REQUIRED_ROLE = "admin";</script>
+  <script src="../auth-guard.js"></script>
 
-<script>
-  document.addEventListener("auth-ready", () => {
-    loadDashboardStats();
-    loadHospitalBreakdown();
-  });
+  <script>
+    document.addEventListener("auth-ready", () => {
+      loadDashboardStats();
+      loadHospitalBreakdown();
+    });
 
-  async function loadDashboardStats() {
-    try {
-      const stats = await apiAdminDashboard();
+    async function loadDashboardStats() {
+      try {
+        const stats = await apiAdminDashboard();
 
-      document.getElementById('stat-total-patients').textContent = stats.total_patients;
-      document.getElementById('stat-total-hospitals').textContent = stats.total_hospitals;
-      document.getElementById('stat-hosp-breakdown').textContent =
-        `${stats.govt_hospitals} Govt · ${stats.private_hospitals} Private`;
-      document.getElementById('stat-total-doctors').textContent = stats.total_doctors;
-      document.getElementById('stat-active-rx').textContent = stats.active_prescriptions;
+        document.getElementById('stat-total-patients').textContent = stats.total_patients;
+        document.getElementById('stat-total-hospitals').textContent = stats.total_hospitals;
+        document.getElementById('stat-hosp-breakdown').textContent =
+          `${stats.govt_hospitals} Govt · ${stats.private_hospitals} Private`;
+        document.getElementById('stat-total-doctors').textContent = stats.total_doctors;
+        document.getElementById('stat-active-rx').textContent = stats.active_prescriptions;
+        loadBackupList();
 
-    } catch (err) {
-      showToast('Failed to load dashboard: ' + err.message, 'error');
-    }
-  }
-
-  async function loadHospitalBreakdown() {
-    const container = document.getElementById('hosp-breakdown-list');
-
-    try {
-      const result = await apiAdminListHospitals();
-      const hospitals = result.hospitals.slice(0, 5);
-
-      if (hospitals.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-dim)">No hospitals yet</div>';
-        return;
+      } catch (err) {
+        showToast('Failed to load dashboard: ' + err.message, 'error');
       }
+    }
 
-      container.innerHTML = hospitals.map(h => `
+    async function loadHospitalBreakdown() {
+      const container = document.getElementById('hosp-breakdown-list');
+
+      try {
+        const result = await apiAdminListHospitals();
+        const hospitals = result.hospitals.slice(0, 5);
+
+        if (hospitals.length === 0) {
+          container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-dim)">No hospitals yet</div>';
+          return;
+        }
+
+        container.innerHTML = hospitals.map(h => `
         <div style="margin-bottom:12px">
           <div style="display:flex;justify-content:space-between;margin-bottom:5px">
             <span style="font-size:13px;font-weight:700">${h.hospital_name}</span>
-            <span class="badge ${h.hospital_type==='Government'?'badge-govt':'badge-private'}">${h.hospital_type==='Government'?'Govt':'Private'}</span>
+            <span class="badge ${h.hospital_type === 'Government' ? 'badge-govt' : 'badge-private'}">${h.hospital_type === 'Government' ? 'Govt' : 'Private'}</span>
           </div>
-          <div style="font-size:11px;color:var(--text-dim)">${(h.bed_capacity||0).toLocaleString()} beds · ${h.doctor_count} doctors</div>
+          <div style="font-size:11px;color:var(--text-dim)">${(h.bed_capacity || 0).toLocaleString()} beds · ${h.doctor_count} doctors</div>
         </div>`).join('');
 
-    } catch (err) {
-      container.innerHTML = `<div style="text-align:center;padding:24px;color:var(--danger)">Error: ${err.message}</div>`;
+      } catch (err) {
+        container.innerHTML = `<div style="text-align:center;padding:24px;color:var(--danger)">Error: ${err.message}</div>`;
+      }
     }
-  }
-</script>
+    async function runBackup() {
+      const btn = document.getElementById('backup-btn');
+      const statusEl = document.getElementById('backup-status');
+
+      btn.disabled = true;
+      btn.textContent = 'Backing up...';
+      statusEl.style.display = 'block';
+      statusEl.className = 'alert alert-info';
+      statusEl.innerHTML = '<span>Uploading to Google Drive...</span>';
+
+      try {
+        const result = await apiAdminBackup();
+
+        statusEl.className = 'alert alert-success';
+        statusEl.innerHTML = `
+      <span>
+        Backup complete: <strong>${result.filename}</strong>
+        (${result.size_kb} KB)
+      </span>`;
+
+        await loadBackupList();
+
+      } catch (err) {
+        statusEl.className = 'alert alert-danger';
+        statusEl.innerHTML = `<span>Backup failed: ${err.message}</span>`;
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Backup Now';
+    }
+
+    async function loadBackupList() {
+      const container = document.getElementById('backup-list');
+
+      try {
+        const result = await apiAdminListBackups();
+        const backups = result.backups;
+
+        if (backups.length === 0) {
+          container.innerHTML =
+            '<div style="text-align:center;padding:16px;color:var(--text-dim);font-size:13px">No backups yet</div>';
+          return;
+        }
+
+        container.innerHTML = `
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:8px 10px;font-size:11px;
+                       color:var(--text-muted);text-transform:uppercase;
+                       border-bottom:1px solid var(--border)">Filename</th>
+            <th style="text-align:left;padding:8px 10px;font-size:11px;
+                       color:var(--text-muted);text-transform:uppercase;
+                       border-bottom:1px solid var(--border)">Size</th>
+            <th style="text-align:left;padding:8px 10px;font-size:11px;
+                       color:var(--text-muted);text-transform:uppercase;
+                       border-bottom:1px solid var(--border)">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${backups.map(b => `
+            <tr>
+              <td style="padding:8px 10px;font-size:12px;
+                         font-family:monospace;border-bottom:1px solid var(--border)">
+                ${b.filename}
+              </td>
+              <td style="padding:8px 10px;font-size:12px;
+                         color:var(--text-muted);border-bottom:1px solid var(--border)">
+                ${b.size_kb} KB
+              </td>
+              <td style="padding:8px 10px;font-size:12px;
+                         color:var(--text-muted);border-bottom:1px solid var(--border)">
+                ${b.created}
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+
+      } catch (err) {
+        container.innerHTML =
+          `<div style="color:var(--danger);font-size:13px;padding:8px">
+         Could not load backup history: ${err.message}
+       </div>`;
+      }
+    }
+  </script>
 </body>
+
 </html>

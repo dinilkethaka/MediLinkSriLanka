@@ -5,6 +5,8 @@ from config import Config
 from database.db import db
 from models import User, Hospital, Doctor, Patient, Prescription, SurgeryHistory #configure tables
 from extensions import mail
+from apscheduler.schedulers.background import BackgroundScheduler  # BACKUP
+import atexit
 
 #imports routes
 from routes.auth_routes import auth_bp
@@ -45,6 +47,30 @@ def create_app():
         db.create_all()
         print("Database tables created (or already exist).")
 
+    # ---------------------------------------------------------
+    # BACKUP: Weekly automatic backup scheduler
+    # Runs every Sunday at 9:00 AM in a background thread.
+    # Does not slow down or block any web requests.
+    # ---------------------------------------------------------
+    scheduler = BackgroundScheduler()
+
+    scheduler.add_job(
+        func=_scheduled_backup,
+        trigger='cron',
+        day_of_week='sun',
+        hour=9,
+        minute=0,
+        id='weekly_backup',
+        name='Weekly Google Drive Backup',
+        replace_existing=True
+    )
+
+    scheduler.start()
+    print("Weekly backup scheduler started (every Sunday at 9:00 AM).")
+
+    # Shut down scheduler cleanly when Flask stops
+    atexit.register(lambda: scheduler.shutdown())
+    
     #Identify / as homepage
     @app.route("/")
     def index():
@@ -55,6 +81,18 @@ def create_app():
 
     return app
 
+def _scheduled_backup():
+    """
+    Called automatically by APScheduler every Sunday at 9 AM.
+    Runs outside a Flask request context.
+    """
+    from services.backup_service import run_backup
+    print("Running scheduled weekly backup...")
+    result = run_backup()
+    if result["success"]:
+        print(f"Weekly backup completed: {result['filename']}")
+    else:
+        print(f"Weekly backup FAILED: {result['message']}")
 
 if __name__ == "__main__":
     print("Starting MediLink Flask App...")

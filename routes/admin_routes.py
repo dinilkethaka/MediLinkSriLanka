@@ -10,7 +10,7 @@ from models.doctor import Doctor
 from models.patient import Patient
 from models.prescription import Prescription
 from models.user import User
-
+from services.backup_service import run_backup
 
 # Create the blueprint for all admin routes
 admin_bp = Blueprint("admin", __name__)
@@ -285,3 +285,64 @@ def admin_dashboard():
         "total_doctors": total_doctors,
         "active_prescriptions": active_prescriptions
     }), 200
+    
+
+# =====================================================
+# GOOGLE DRIVE BACKUP
+# =====================================================
+
+@admin_bp.route("/api/admin/backup", methods=["POST"])
+@login_required
+@role_required("admin")
+def backup_to_drive():
+    """
+    Manual backup — triggered by the admin clicking
+    "Backup Now" on the dashboard.
+    """
+    result = run_backup()
+
+    if result["success"]:
+        return jsonify(result), 200
+    else:
+        return jsonify(result), 500
+
+
+@admin_bp.route("/api/admin/backup/list", methods=["GET"])
+@login_required
+@role_required("admin")
+def list_backups():
+    """
+    Returns a list of all previous backups stored in Google Drive,
+    newest first. Shown as a table on the Admin dashboard.
+    """
+    from services.backup_service import authenticate, get_or_create_folder
+
+    service = authenticate()
+    if not service:
+        return jsonify({"error": "Google Drive not connected"}), 500
+
+    try:
+        folder_id = get_or_create_folder(service)
+
+        results = service.files().list(
+            q=f"'{folder_id}' in parents and trashed=false",
+            orderBy="createdTime desc",
+            fields="files(id, name, size, createdTime)",
+            pageSize=20
+        ).execute()
+
+        backups = results.get('files', [])
+
+        return jsonify({
+            "backups": [
+                {
+                    "filename": f["name"],
+                    "size_kb": round(int(f.get("size", 0)) / 1024, 1),
+                    "created": f.get("createdTime", "")[:19].replace("T", " ")
+                }
+                for f in backups
+            ]
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
