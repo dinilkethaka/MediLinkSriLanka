@@ -135,3 +135,8 @@ function apiDoctorAddPrescription(prescriptionData) {
 function apiDoctorListMyPrescriptions() {
   return apiRequest("/api/doctor/prescriptions", "GET");
 }
+
+// OTP
+function apiVerifyOtp(otp) {
+  return apiRequest("/api/auth/verify-otp", "POST", { otp });
+}
