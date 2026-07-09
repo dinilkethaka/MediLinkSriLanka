@@ -46,20 +46,63 @@
   <div class="login-card">
     <div id="login-role-badge" class="login-role-badge">🛡 Admin Login</div>
     <div class="login-title" id="login-title">Admin Login</div>
-    <div class="login-sub">Enter your username and password</div>
+  <!-- Step 1: Username + Password -->
+  <div id="step-1">
+    <div class="login-sub">Enter your credentials</div>
 
     <div class="form-group">
       <label>Username</label>
-      <input type="text" id="login-username" placeholder="e.g., admin1">
+      <input type="text" id="login-username" placeholder="e.g., admin1"
+             onkeydown="if(event.key==='Enter') doLogin()">
     </div>
 
     <div class="form-group">
       <label>Password</label>
-      <input type="password" id="login-password" placeholder="Enter your password">
+      <input type="password" id="login-password" placeholder="Enter your password"
+             onkeydown="if(event.key==='Enter') doLogin()">
     </div>
 
-    <button class="btn btn-primary btn-full" onclick="doLogin()">Continue →</button>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">
+      Continue
+    </button>
+  </div>
 
+  <!-- Step 2: OTP -->
+  <div id="step-2" style="display:none">
+    <div class="login-sub">
+      A 6-digit verification code has been sent to your registered
+      email address. Enter it below to complete login.
+    </div>
+
+    <div class="form-group" style="margin-top:16px">
+      <label>Verification Code</label>
+      <input type="text" id="otp-input" placeholder="000000"
+             maxlength="6"
+             style="font-size:24px;letter-spacing:10px;text-align:center"
+             onkeydown="if(event.key==='Enter') verifyOtp()">
+    </div>
+
+    <button class="btn btn-primary btn-full" onclick="verifyOtp()">
+      Verify and Login
+    </button>
+
+    <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-muted)">
+      Didn't receive the code?
+      <button onclick="resendOtp()"
+              style="background:none;border:none;color:var(--primary);
+                     font-size:12px;cursor:pointer;font-weight:600;padding:0;margin-left:4px">
+        Resend
+      </button>
+    </div>
+
+    <div style="text-align:center;margin-top:8px">
+      <button onclick="showStep(1)"
+              style="background:none;border:none;color:var(--text-muted);
+                     font-size:12px;cursor:pointer;padding:0">
+        Back to login
+      </button>
+    </div>
+  </div>
   </div>
 </div>
 
@@ -71,10 +114,10 @@
 <!--apiLogin() , apiLogout() , apiAdminDashboard() -->
 <script src="api.js"></script>
 <script>
-  let selectedRole = null;
+let selectedRole = null;
 
-  function selectRole(role) {
-    selectedRole = role;
+function selectRole(role) {
+  selectedRole = role;
 
     const labels = {
       admin: { badge: '🛡 Admin Login', title: 'Admin Login' },
@@ -82,45 +125,102 @@
       doctor: { badge: '👨‍⚕️ Doctor Login', title: 'Doctor Login' }
     };
 
-    document.getElementById('login-role-badge').textContent = labels[role].badge;
-    document.getElementById('login-title').textContent = labels[role].title;
+  document.getElementById('login-role-badge').textContent = labels[role].badge;
+  document.getElementById('login-title').textContent = labels[role].title;
+  document.getElementById('screen-role').style.display = 'none';
+  document.getElementById('screen-login').style.display = 'flex';
+  showStep(1);
+}
 
-    document.getElementById('screen-role').style.display = 'none';
-    document.getElementById('screen-login').style.display = 'flex';
+function showRoleScreen() {
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-role').style.display = 'flex';
+  showStep(1);
+}
+
+function showStep(step) {
+  document.getElementById('step-1').style.display = step === 1 ? 'block' : 'none';
+  document.getElementById('step-2').style.display = step === 2 ? 'block' : 'none';
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value.trim();
+
+  if (!username || !password) {
+    showToast('Please enter username and password', 'error');
+    return;
   }
 
-  function showRoleScreen() {
-    document.getElementById('screen-login').style.display = 'none';
-    document.getElementById('screen-role').style.display = 'flex';
-  }
+  try {
+    const result = await apiLogin(username, password);
 
-  async function doLogin() {
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value.trim();
-
-    if (!username || !password) {
-      showToast('Please enter username and password', 'error');
+    // Hospital/Doctor -> OTP
+    if (result.otp_sent) {
+      showToast('Verification code sent to your email', 'success');
+      showStep(2);
       return;
     }
 
-    try {
-      const result = await apiLogin(username, password);
-      const role = result.user.role;
+    // Admin -> Login immediately
+    showToast('Login successful!', 'success');
 
-      showToast('Login successful!', 'success');
+    const redirects = {
+      admin: 'admin/dashboard.html',
+      hospital: 'hospital/dashboard.html',
+      doctor: 'doctor/select-hospital.html'
+    };
 
-     const redirects = {
-        admin: 'admin/dashboard.html',
-        hospital: 'hospital/dashboard.html',
-        doctor: 'doctor/select-hospital.html'
-      };
+    window.location.href = redirects[result.user.role];
 
-      window.location.href = redirects[role];
-
-    } catch (err) {
-      showToast(err.message, 'error');
-    }
+  } catch (err) {
+    showToast(err.message, 'error');
   }
+}
+
+async function verifyOtp() {
+  const otp = document.getElementById('otp-input').value.trim();
+
+  if (!otp || otp.length !== 6) {
+    showToast('Please enter the 6-digit code', 'error');
+    return;
+  }
+
+  try {
+    const result = await apiVerifyOtp(otp);
+
+    showToast('Login successful!', 'success');
+
+    const redirects = {
+      admin:    'admin/dashboard.html',
+      hospital: 'hospital/dashboard.html',
+      doctor:   'doctor/select-hospital.html'
+    };
+
+    window.location.href = redirects[result.user.role];
+
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function resendOtp() {
+  showToast('Sending new code...', 'info');
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value.trim();
+
+  try {
+    const result = await apiLogin(username, password);
+    if (result.otp_sent) {
+      showToast('New code sent to your email', 'success');
+      if (result.dev_otp) {
+        document.getElementById('otp-input').value = result.dev_otp;
+      }
+    }
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
 </script>
 </body>
 </html>
