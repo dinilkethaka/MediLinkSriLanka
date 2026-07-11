@@ -129,9 +129,9 @@
     const container = document.getElementById('page-content');
 
     container.innerHTML = `
-      <div class="card" style="background:linear-gradient(135deg, var(--blue-800), var(--blue-600)); color:#fff; margin-bottom:20px">
+      <div class="card" style="background:linear-gradient(135deg, var(--blue-800), var(--blue-600)); color:blue; margin-bottom:20px">
         <div style="font-size:22px;font-weight:800">${p.full_name}</div>
-        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:8px;opacity:0.9;font-size:13px">
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:8px;opacity:0.9;font-size:13px";color:blue>
           <span>📋 NIC: ${p.nic}</span>
           <span>🎂 Age: ${age}</span>
           <span>🧍 ${p.gender || '—'}</span>
