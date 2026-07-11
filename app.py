@@ -47,11 +47,8 @@ def create_app():
         db.create_all()
         print("Database tables created (or already exist).")
 
-    # ---------------------------------------------------------
-    # BACKUP: Weekly automatic backup scheduler
-    # Runs every Sunday at 1:00 AM in a background thread.
-    # Does not slow down or block any web requests.
-    # ---------------------------------------------------------
+
+    # Weekly backup
     scheduler = BackgroundScheduler()
 
     scheduler.add_job(
@@ -68,7 +65,6 @@ def create_app():
     scheduler.start()
     print("Weekly backup scheduler started (every Sunday at 1:00 AM).")
 
-    # Shut down scheduler cleanly when Flask stops
     atexit.register(lambda: scheduler.shutdown())
     
     #Identify / as homepage

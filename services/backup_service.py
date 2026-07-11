@@ -1,13 +1,3 @@
-# services/backup_service.py
-# ---------------------------------------------------------
-# Handles all Google Drive backup logic:
-#
-#   authenticate()          - connects to Drive using token.json
-#   get_or_create_folder()  - finds or creates "MediLink Backups" folder
-#   upload_backup()         - uploads medilink.db with a timestamp name
-#   run_backup()            - main function, calls the three above
-# ---------------------------------------------------------
-
 import os
 import shutil
 from datetime import datetime
@@ -21,7 +11,7 @@ SL_TIMEZONE = timezone(timedelta(hours=5, minutes=30))
 
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
-# Path to your database file
+# Path to database file
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'instance', 'medilink.db')
 
 # Name of the folder in Google Drive
@@ -29,20 +19,12 @@ DRIVE_FOLDER_NAME = "MediLink Backups"
 
 
 def authenticate():
-    """
-    Loads saved Google credentials from token.json.
-    Automatically refreshes the token if it has expired.
-
-    Returns:
-        Google Drive service object, or None if auth fails
-    """
     if not os.path.exists('token.json'):
         print("token.json not found. Run authorize_google.py first.")
         return None
 
     creds = Credentials.from_authorized_user_file('token.json', SCOPES)
 
-    # Refresh if expired
     if not creds.valid:
         if creds.expired and creds.refresh_token:
             try:
@@ -60,13 +42,6 @@ def authenticate():
 
 
 def get_or_create_folder(service):
-    """
-    Finds the "MediLink Backups" folder in Google Drive.
-    Creates it if it doesn't exist.
-
-    Returns:
-        str: the folder's ID
-    """
     query = (
         f"name='{DRIVE_FOLDER_NAME}' "
         f"and mimeType='application/vnd.google-apps.folder' "
@@ -98,13 +73,7 @@ def get_or_create_folder(service):
 
 
 def upload_backup(service, folder_id):
-    """
-    Uploads a copy of medilink.db to Google Drive.
-    Uses a timestamped filename so old backups are never overwritten.
 
-    Returns:
-        dict with backup info, or None if upload failed
-    """
     if not os.path.exists(DB_PATH):
         print(f"Database file not found: {DB_PATH}")
         return None
@@ -146,16 +115,13 @@ def upload_backup(service, folder_id):
         return None
 
     finally:
-    # Always delete the temp file
-    # Small delay needed on Windows — file may still be locked
-    # briefly after the upload stream closes
+        #delete tempory file
         if os.path.exists(temp_path):
             import time
             time.sleep(1)
             try:
                 os.remove(temp_path)
             except PermissionError:
-            # If still locked, try once more after another second
                 time.sleep(2)
                 try:
                     os.remove(temp_path)
@@ -163,14 +129,6 @@ def upload_backup(service, folder_id):
                     print(f"Could not delete temp file {temp_path} — delete it manually")
 
 def run_backup():
-    """
-    Main backup function — called by the admin button
-    and the weekly scheduler.
-
-    Returns:
-        dict: { "success": bool, "message": str, ... }
-    """
-    # In run_backup()
     print(f"Starting backup at {datetime.now(SL_TIMEZONE).strftime('%Y-%m-%d %H:%M:%S')}")
 
 
