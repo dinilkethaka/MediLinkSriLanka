@@ -1,19 +1,6 @@
-# authorize_google.py
-# ---------------------------------------------------------
-# Run this file ONCE to connect your Google account.
-# It opens a browser, you log in and click Allow,
-# then it saves token.json which Flask uses for all
-# future backups without opening the browser again.
-#
-# Run with:
-#   python authorize_google.py
-# ---------------------------------------------------------
-
 from google_auth_oauthlib.flow import InstalledAppFlow
 import os
 
-# This scope allows read+write access to files created
-# by THIS app only — cannot access your other Drive files
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
 def authorize():

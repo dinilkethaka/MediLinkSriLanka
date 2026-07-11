@@ -287,18 +287,12 @@ def admin_dashboard():
     }), 200
     
 
-# =====================================================
-# GOOGLE DRIVE BACKUP
-# =====================================================
+# Backup
 
 @admin_bp.route("/api/admin/backup", methods=["POST"])
 @login_required
 @role_required("admin")
 def backup_to_drive():
-    """
-    Manual backup — triggered by the admin clicking
-    "Backup Now" on the dashboard.
-    """
     result = run_backup()
 
     if result["success"]:
@@ -311,10 +305,6 @@ def backup_to_drive():
 @login_required
 @role_required("admin")
 def list_backups():
-    """
-    Returns a list of all previous backups stored in Google Drive,
-    newest first. Shown as a table on the Admin dashboard.
-    """
     from services.backup_service import authenticate, get_or_create_folder
 
     service = authenticate()

@@ -1,13 +1,3 @@
-# services/otp_service.py
-# ---------------------------------------------------------
-# Handles OTP generation, storage, email sending, and verification.
-#
-# Storage: Flask session (temporary server-side storage)
-#   - No database table needed
-#   - Auto-cleared when OTP is used or when session ends
-#   - OTP expires after OTP_EXPIRY_MINUTES (set in config.py)
-# ---------------------------------------------------------
-
 import random
 import string
 from datetime import datetime, timedelta
@@ -16,43 +6,20 @@ from flask_mail import Message
 
 
 def generate_otp():
-    """
-    Generates a random 6-digit numeric code.
-    e.g. "482193"
-    """
     return ''.join(random.choices(string.digits, k=6))
 
 
 def store_otp(user_id, otp_code):
-    """
-    Saves the OTP and its expiry time in the Flask session.
-
-    Parameters:
-        user_id (int): the user who requested the OTP
-        otp_code (str): the 6-digit code to store
-    """
     expiry_minutes = current_app.config.get('OTP_EXPIRY_MINUTES', 3)
     expiry_time = datetime.utcnow() + timedelta(minutes=expiry_minutes)
 
-    # Store in Flask session - automatically tied to this browser
+
     session['otp_user_id'] = user_id
     session['otp_code']    = otp_code
     session['otp_expiry']  = expiry_time.isoformat()
 
 
 def send_otp_email(mail, user_email, user_name, otp_code):
-    """
-    Sends the OTP code to the user's email address.
-
-    Parameters:
-        mail: the Flask-Mail instance from app.py
-        user_email (str): recipient email address
-        user_name (str): used in the greeting
-        otp_code (str): the 6-digit code to send
-
-    Returns:
-        bool: True if sent, False if sending failed
-    """
     expiry_minutes = current_app.config.get('OTP_EXPIRY_MINUTES', 3)
 
     try:
@@ -114,40 +81,23 @@ def send_otp_email(mail, user_email, user_name, otp_code):
 
 
 def verify_otp(user_id, entered_code):
-    """
-    Checks the entered OTP against the stored one.
-
-    Parameters:
-        user_id (int): the user trying to verify
-        entered_code (str): the code they typed
-
-    Returns:
-        tuple: (is_valid: bool, error_message: str or None)
-
-    Clears the OTP from session after use (one-time only).
-    """
     stored_user_id = session.get('otp_user_id')
     stored_code    = session.get('otp_code')
     stored_expiry  = session.get('otp_expiry')
 
-    # Check all session values exist
     if not stored_code or not stored_expiry or not stored_user_id:
         return False, "No OTP found. Please log in again."
 
-    # Make sure OTP belongs to this user
     if stored_user_id != user_id:
         return False, "OTP mismatch. Please log in again."
 
-    # Check expiry
     if datetime.utcnow() > datetime.fromisoformat(stored_expiry):
         _clear_otp_session()
         return False, "OTP has expired. Please log in again."
 
-    # Check the code
     if entered_code.strip() != stored_code:
         return False, "Invalid OTP code. Please try again."
 
-    # All good — clear so it cannot be reused
     _clear_otp_session()
     return True, None
 
